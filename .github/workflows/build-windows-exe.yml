@@ -5,6 +5,9 @@ on: [push]
 jobs:
   build-windows:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, x86]
     steps:
     - name: Kód letöltése
       uses: actions/checkout@v4
@@ -13,7 +16,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.x'
-        architecture: 'x64'
+        architecture: ${{ matrix.arch }}
 
     - name: Függőségek telepítése (PyInstaller és requirements)
       run: |
@@ -22,16 +25,45 @@ jobs:
 
     - name: test-placcon-display.exe buildelése (test.core.placcon.com)
       run: |
-        pyinstaller --onefile --windowed --icon="placcon.ico" --name "test-placcon-display" launch_placcon.py -- "test.core.placcon.com"
+        pyinstaller --onefile --windowed --icon="placcon.ico" --name "test-placcon-display-${{ matrix.arch }}" launch_placcon.py -- "test.core.placcon.com"
 
     - name: placcon-display.exe buildelése (core.placcon.com)
       run: |
-        pyinstaller --onefile --windowed --icon="placcon.ico" --name "placcon-display" launch_placcon.py -- "core.placcon.com"
+        pyinstaller --onefile --windowed --icon="placcon.ico" --name "placcon-display-${{ matrix.arch }}" launch_placcon.py -- "core.placcon.com"
 
     - name: Buildelt Exék feltöltése artifactként
       uses: actions/upload-artifact@v4
       with:
-        name: Windows-Placcon-Executables
+        name: Windows-Placcon-Executables-${{ matrix.arch }}
         path: |
-          dist/test-placcon-display.exe
-          dist/placcon-display.exe 
+          dist/test-placcon-display-${{ matrix.arch }}.exe
+          dist/placcon-display-${{ matrix.arch }}.exe
+
+  release:
+    needs: build-windows
+    runs-on: ubuntu-latest
+    steps:
+    - name: Artifactok letöltése (x64)
+      uses: actions/download-artifact@v4
+      with:
+        name: Windows-Placcon-Executables-x64
+        path: artifacts/x64
+
+    - name: Artifactok letöltése (x86)
+      uses: actions/download-artifact@v4
+      with:
+        name: Windows-Placcon-Executables-x86
+        path: artifacts/x86
+
+    - name: GitHub Release létrehozása és fájlok feltöltése
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v1.0.0
+        name: 1.0.0
+        files: |
+          artifacts/x64/test-placcon-display-x64.exe
+          artifacts/x64/placcon-display-x64.exe
+          artifacts/x86/test-placcon-display-x86.exe
+          artifacts/x86/placcon-display-x86.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
