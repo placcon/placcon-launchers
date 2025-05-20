@@ -8,24 +8,23 @@ IS_WINDOWS = sys.platform.startswith('win')
 
 def find_chrome_path():
     """Finds the installation path of Google Chrome."""
-    # Primarily in Program Files (usually 64-bit)
     path_primary = os.path.join(os.environ.get("ProgramFiles", "C:\\Program Files"), "Google", "Chrome", "Application", "chrome.exe")
-    # Secondarily in Program Files (x86) (usually 32-bit)
     path_secondary = os.path.join(os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)"), "Google", "Chrome", "Application", "chrome.exe")
-    # User install (AppData)
     path_user = os.path.join(os.environ.get("LOCALAPPDATA", r"C:\\Users\\%USERNAME%\\AppData\\Local"), "Google", "Chrome", "Application", "chrome.exe")
 
-    print(f"[DEBUG] path_primary: {path_primary} - exists: {os.path.exists(path_primary)}")
-    print(f"[DEBUG] path_secondary: {path_secondary} - exists: {os.path.exists(path_secondary)}")
-    print(f"[DEBUG] path_user: {path_user} - exists: {os.path.exists(path_user)}")
+    debug_msg = (
+        f"[DEBUG] path_primary: {path_primary} - exists: {os.path.exists(path_primary)}\n"
+        f"[DEBUG] path_secondary: {path_secondary} - exists: {os.path.exists(path_secondary)}\n"
+        f"[DEBUG] path_user: {path_user} - exists: {os.path.exists(path_user)}\n"
+    )
 
     if os.path.exists(path_primary):
-        return path_primary
+        return path_primary, debug_msg
     elif os.path.exists(path_secondary):
-        return path_secondary
+        return path_secondary, debug_msg
     elif os.path.exists(path_user):
-        return path_user
-    return None
+        return path_user, debug_msg
+    return None, debug_msg
 
 def main():
     parser = argparse.ArgumentParser(description="Placcon Chrome launcher")
@@ -34,13 +33,8 @@ def main():
     parser.add_argument("--kiosk", "-k", action="store_true", help="Enable kiosk mode (default: fullscreen app mode)")
     args = parser.parse_args()
 
-    chrome_exe_path = find_chrome_path()
+    chrome_exe_path, debug_msg = find_chrome_path()
     if not chrome_exe_path:
-        debug_msg = (
-            f"[DEBUG] path_primary: {path_primary} - exists: {os.path.exists(path_primary)}\n"
-            f"[DEBUG] path_secondary: {path_secondary} - exists: {os.path.exists(path_secondary)}\n"
-            f"[DEBUG] path_user: {path_user} - exists: {os.path.exists(path_user)}\n"
-        )
         if IS_WINDOWS:
             ctypes.windll.user32.MessageBoxW(
                 0,
