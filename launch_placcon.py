@@ -4,6 +4,8 @@ import ctypes
 import sys
 import argparse
 
+IS_WINDOWS = sys.platform.startswith('win')
+
 def find_chrome_path():
     """Finds the installation path of Google Chrome."""
     # Primarily in Program Files (usually 64-bit)
@@ -26,12 +28,15 @@ def main():
 
     chrome_exe_path = find_chrome_path()
     if not chrome_exe_path:
-        ctypes.windll.user32.MessageBoxW(
-            0,
-            "Google Chrome was not found in the default locations.\nPlease install Google Chrome.",
-            "Error",
-            0x10 | 0x0  # MB_ICONERROR | MB_OK
-        )
+        if IS_WINDOWS:
+            ctypes.windll.user32.MessageBoxW(
+                0,
+                "Google Chrome was not found in the default locations.\nPlease install Google Chrome.",
+                "Error",
+                0x10 | 0x0  # MB_ICONERROR | MB_OK
+            )
+        else:
+            print("Google Chrome was not found in the default locations. Please install Google Chrome.")
         return
 
     site_url = args.site_url
@@ -44,7 +49,10 @@ def main():
             os.makedirs(profile_dir)
         except OSError as e:
             error_message = f"Failed to create profile directory: {profile_dir}\nError: {e}"
-            ctypes.windll.user32.MessageBoxW(0, error_message, "Error", 0x10 | 0x0)
+            if IS_WINDOWS:
+                ctypes.windll.user32.MessageBoxW(0, error_message, "Error", 0x10 | 0x0)
+            else:
+                print(error_message)
             return
 
     chrome_args = [
@@ -70,7 +78,10 @@ def main():
         subprocess.Popen(chrome_args)
     except Exception as e:
         error_message = f"An error occurred while launching Chrome:\n{e}"
-        ctypes.windll.user32.MessageBoxW(0, error_message, "Error", 0x10 | 0x0)
+        if IS_WINDOWS:
+            ctypes.windll.user32.MessageBoxW(0, error_message, "Error", 0x10 | 0x0)
+        else:
+            print(error_message)
 
 if __name__ == "__main__":
     main()

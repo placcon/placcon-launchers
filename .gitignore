@@ -1,0 +1,5 @@
+/venv
+/dist
+/build
+placcon_display.spec
+placcon.spec

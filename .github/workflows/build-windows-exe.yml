@@ -41,42 +41,44 @@ jobs:
           dist/placcon_display.exe
           dist/placcon.exe
 
-  build-macos:
-    runs-on: macos-latest
-    steps:
-    - name: Teljes repository checkout (tagekkel)
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Python beállítása
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-
-    - name: Függőségek telepítése (PyInstaller és requirements)
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: placcon_display.app buildelése (kiosk, placcon1)
-      run: |
-        pyinstaller --onefile --windowed --icon="placcon.icns" --name "placcon_display" launch_placcon.py -- --profile placcon1 --kiosk
-
-    - name: placcon.app buildelése (fullscreen app, placconapp)
-      run: |
-        pyinstaller --onefile --windowed --icon="placcon.icns" --name "placcon" launch_placcon.py -- --profile placconapp
-
-    - name: Buildelt Appok feltöltése artifactként
-      uses: actions/upload-artifact@v4
-      with:
-        name: MacOS-Placcon-Apps
-        path: |
-          dist/placcon_display.app.zip
-          dist/placcon.app.zip
+  # build-macos:
+  #   runs-on: macos-latest
+  #   steps:
+  #   - name: Teljes repository checkout (tagekkel)
+  #     uses: actions/checkout@v4
+  #     with:
+  #       fetch-depth: 0
+  #
+  #   - name: Python beállítása
+  #     uses: actions/setup-python@v5
+  #     with:
+  #       python-version: '3.x'
+  #
+  #   - name: Függőségek telepítése (PyInstaller és requirements)
+  #     run: |
+  #       python -m pip install --upgrade pip
+  #       pip install -r requirements.txt
+  #
+  #   - name: placcon_display.app buildelése (kiosk, placcon1)
+  #     run: |
+  #       pyinstaller --onefile --windowed --icon="placcon.icns" --name "placcon_display" launch_placcon.py -- --profile placcon1 --kiosk
+  #       cd dist && zip -r placcon_display.app.zip placcon_display.app && cd ..
+  #
+  #   - name: placcon.app buildelése (fullscreen app, placconapp)
+  #     run: |
+  #       pyinstaller --onefile --windowed --icon="placcon.icns" --name "placcon" launch_placcon.py -- --profile placconapp
+  #       cd dist && zip -r placcon.app.zip placcon.app && cd ..
+  #
+  #   - name: Buildelt Appok feltöltése artifactként
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       name: MacOS-Placcon-Apps
+  #       path: |
+  #         dist/placcon_display.app.zip
+  #         dist/placcon.app.zip
 
   release:
-    needs: [build-windows, build-macos]
+    needs: [build-windows]
     runs-on: ubuntu-latest
     steps:
     - name: Windows artifact letöltése
