@@ -75,6 +75,23 @@ jobs:
     needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
+    - name: Legutóbbi tag lekérdezése és új verzió generálása
+      id: get_version
+      run: |
+        # Összes v1.*.0 tag kilistázása, csak a minor számot nézzük
+        tags=$(git tag -l 'v1.*.0')
+        max_minor=0
+        for tag in $tags; do
+          minor=$(echo $tag | sed -E 's/v1\.([0-9]+)\.0/\1/')
+          if [[ $minor =~ ^[0-9]+$ ]] && (( minor > max_minor )); then
+            max_minor=$minor
+          fi
+        done
+        next_minor=$((max_minor+1))
+        new_tag="v1.$next_minor.0"
+        echo "Következő verzió: $new_tag"
+        echo "tag=$new_tag" >> $GITHUB_OUTPUT
+
     - name: Windows artifact letöltése
       uses: actions/download-artifact@v4
       with:
@@ -90,8 +107,8 @@ jobs:
     - name: GitHub Release létrehozása és fájlok feltöltése
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v1.0.0
-        name: 1.0.0
+        tag_name: ${{ steps.get_version.outputs.tag }}
+        name: ${{ steps.get_version.outputs.tag }}
         files: |
           artifacts/windows/placcon_display.exe
           artifacts/windows/placcon.exe
