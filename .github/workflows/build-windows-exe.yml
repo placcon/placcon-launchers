@@ -72,14 +72,20 @@ jobs:
           dist/placcon.app
 
   release:
-    needs: build-windows
+    needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
-    - name: Artifactok letöltése
+    - name: Windows artifact letöltése
       uses: actions/download-artifact@v4
       with:
         name: Windows-Placcon-Executables
         path: artifacts/windows
+
+    - name: MacOS artifact letöltése
+      uses: actions/download-artifact@v4
+      with:
+        name: MacOS-Placcon-Apps
+        path: artifacts/macos
 
     - name: GitHub Release létrehozása és fájlok feltöltése
       uses: softprops/action-gh-release@v2
@@ -89,5 +95,7 @@ jobs:
         files: |
           artifacts/windows/placcon_display.exe
           artifacts/windows/placcon.exe
+          artifacts/macos/placcon_display.app
+          artifacts/macos/placcon.app
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
