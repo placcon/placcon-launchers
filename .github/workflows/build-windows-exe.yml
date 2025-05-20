@@ -9,8 +9,10 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-    - name: Kód letöltése
+    - name: Teljes repository checkout (tagekkel)
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Python beállítása
       uses: actions/setup-python@v5
@@ -42,8 +44,10 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-    - name: Kód letöltése
+    - name: Teljes repository checkout (tagekkel)
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Python beállítása
       uses: actions/setup-python@v5
