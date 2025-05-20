@@ -2,6 +2,7 @@ import os
 import subprocess
 import ctypes
 import sys
+import argparse
 
 def find_chrome_path():
     """Finds the installation path of Google Chrome."""
@@ -17,8 +18,13 @@ def find_chrome_path():
     return None
 
 def main():
-    chrome_exe_path = find_chrome_path()
+    parser = argparse.ArgumentParser(description="Placcon Chrome launcher")
+    parser.add_argument("site_url", nargs="?", default="test.core.placcon.com", help="Site URL to open")
+    parser.add_argument("--profile", "-p", default="placcon1", help="Profile directory name")
+    parser.add_argument("--kiosk", "-k", action="store_true", help="Enable kiosk mode (default: fullscreen app mode)")
+    args = parser.parse_args()
 
+    chrome_exe_path = find_chrome_path()
     if not chrome_exe_path:
         ctypes.windll.user32.MessageBoxW(
             0,
@@ -28,34 +34,24 @@ def main():
         )
         return
 
-    # Handle command line argument for site_url
-    if len(sys.argv) > 1:
-        site_url = sys.argv[1]
-    else:
-        site_url = "test.core.placcon.com"
-    profile_dir_name = "placcon1"
-    # Safer location for the profile would be under AppData, but as requested, C:\ChromeProfiles\placcon1 is used
-    # If writing to the C: root causes permission issues, consider using os.path.expanduser("~")
-    profile_dir_base = "C:\\ChromeProfiles"  # Based on the VBS
+    site_url = args.site_url
+    profile_dir_name = args.profile
+    profile_dir_base = "C:\\ChromeProfiles"
     profile_dir = os.path.join(profile_dir_base, profile_dir_name)
 
-    # Create profile directory if it does not exist
     if not os.path.exists(profile_dir):
         try:
             os.makedirs(profile_dir)
-            # print(f"Profile directory created: {profile_dir}") # Only visible in console mode
         except OSError as e:
             error_message = f"Failed to create profile directory: {profile_dir}\nError: {e}"
             ctypes.windll.user32.MessageBoxW(0, error_message, "Error", 0x10 | 0x0)
             return
 
-    # Assemble Chrome launch command (based on previous .bat script)
     chrome_args = [
         chrome_exe_path,
         "--new-window",
         "--start-fullscreen",
         "--disable-features=Translate",
-        "--kiosk",
         "--disable-translate",
         "--disable-extensions",
         "--disable-zoom",
@@ -67,9 +63,10 @@ def main():
         f"--app={site_url}",
         f"--user-data-dir={profile_dir}"
     ]
+    if args.kiosk:
+        chrome_args.append("--kiosk")
 
     try:
-        # Start Chrome as a new process (does not wait for it to close)
         subprocess.Popen(chrome_args)
     except Exception as e:
         error_message = f"An error occurred while launching Chrome:\n{e}"

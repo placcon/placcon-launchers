@@ -1,4 +1,4 @@
-name: Build Windows EXE
+name: Build Placcon Apps
 
 on: [push]
 
@@ -8,9 +8,6 @@ permissions:
 jobs:
   build-windows:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        arch: [x64, x86]
     steps:
     - name: Kód letöltése
       uses: actions/checkout@v4
@@ -19,28 +16,60 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.x'
-        architecture: ${{ matrix.arch }}
+        architecture: x86
 
     - name: Függőségek telepítése (PyInstaller és requirements)
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: test-placcon-display.exe buildelése (test.core.placcon.com)
+    - name: placcon_display.exe buildelése (kiosk, placcon1)
       run: |
-        pyinstaller --onefile --windowed --icon="placcon.ico" --name "test-placcon-display-${{ matrix.arch }}" launch_placcon.py -- "test.core.placcon.com"
+        pyinstaller --onefile --windowed --icon="placcon.ico" --name "placcon_display" launch_placcon.py -- --profile placcon1 --kiosk
 
-    - name: placcon-display.exe buildelése (core.placcon.com)
+    - name: placcon.exe buildelése (fullscreen app, placconapp)
       run: |
-        pyinstaller --onefile --windowed --icon="placcon.ico" --name "placcon-display-${{ matrix.arch }}" launch_placcon.py -- "core.placcon.com"
+        pyinstaller --onefile --windowed --icon="placcon.ico" --name "placcon" launch_placcon.py -- --profile placconapp
 
     - name: Buildelt Exék feltöltése artifactként
       uses: actions/upload-artifact@v4
       with:
-        name: Windows-Placcon-Executables-${{ matrix.arch }}
+        name: Windows-Placcon-Executables
         path: |
-          dist/test-placcon-display-${{ matrix.arch }}.exe
-          dist/placcon-display-${{ matrix.arch }}.exe
+          dist/placcon_display.exe
+          dist/placcon.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - name: Kód letöltése
+      uses: actions/checkout@v4
+
+    - name: Python beállítása
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Függőségek telepítése (PyInstaller és requirements)
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: placcon_display.app buildelése (kiosk, placcon1)
+      run: |
+        pyinstaller --windowed --icon="placcon.icns" --name "placcon_display" launch_placcon.py -- --profile placcon1 --kiosk
+
+    - name: placcon.app buildelése (fullscreen app, placconapp)
+      run: |
+        pyinstaller --windowed --icon="placcon.icns" --name "placcon" launch_placcon.py -- --profile placconapp
+
+    - name: Buildelt Appok feltöltése artifactként
+      uses: actions/upload-artifact@v4
+      with:
+        name: MacOS-Placcon-Apps
+        path: |
+          dist/placcon_display.app
+          dist/placcon.app
 
   release:
     needs: build-windows
