@@ -87,11 +87,11 @@ jobs:
         name: Windows-Placcon-Executables
         path: artifacts/windows
 
-    - name: MacOS artifact letöltése
-      uses: actions/download-artifact@v4
-      with:
-        name: MacOS-Placcon-Apps
-        path: artifacts/macos
+    # - name: MacOS artifact letöltése
+    #   uses: actions/download-artifact@v4
+    #   with:
+    #     name: MacOS-Placcon-Apps
+    #     path: artifacts/macos
 
     - name: GitHub Release létrehozása és fájlok feltöltése
       uses: softprops/action-gh-release@v2
