@@ -75,17 +75,11 @@ jobs:
     needs: build-windows
     runs-on: ubuntu-latest
     steps:
-    - name: Artifactok letöltése (x64)
+    - name: Artifactok letöltése
       uses: actions/download-artifact@v4
       with:
-        name: Windows-Placcon-Executables-x64
-        path: artifacts/x64
-
-    - name: Artifactok letöltése (x86)
-      uses: actions/download-artifact@v4
-      with:
-        name: Windows-Placcon-Executables-x86
-        path: artifacts/x86
+        name: Windows-Placcon-Executables
+        path: artifacts/windows
 
     - name: GitHub Release létrehozása és fájlok feltöltése
       uses: softprops/action-gh-release@v2
@@ -93,9 +87,7 @@ jobs:
         tag_name: v1.0.0
         name: 1.0.0
         files: |
-          artifacts/x64/test-placcon-display-x64.exe
-          artifacts/x64/placcon-display-x64.exe
-          artifacts/x86/test-placcon-display-x86.exe
-          artifacts/x86/placcon-display-x86.exe
+          artifacts/windows/placcon_display.exe
+          artifacts/windows/placcon.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
