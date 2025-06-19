@@ -84,18 +84,6 @@ jobs:
         echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
         echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
 
-    - name: Update package.json version
-      run: |
-        # Update package.json version
-        npm version ${{ steps.get_version.outputs.new_version }} --no-git-tag-version
-        
-        # Commit and push the version update
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add package.json package-lock.json
-        git commit -m "Bump version to ${{ steps.get_version.outputs.new_version }}"
-        git push origin electron-v2
-
     - name: Download all artifacts
       uses: actions/download-artifact@v4
       with:
