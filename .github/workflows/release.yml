@@ -38,6 +38,8 @@ jobs:
 
     - name: Build for ${{ matrix.platform }}
       run: npm run build:${{ matrix.platform }}
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     - name: Clean dist folder (keep only installers)
       run: |
