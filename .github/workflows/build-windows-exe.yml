@@ -1,4 +1,4 @@
-name: Build Electron Apps for Windows
+name: Build Electron App Test for Windows x86 & ARM64
 
 on: [push]
 
@@ -6,52 +6,8 @@ permissions:
   contents: write
 
 jobs:
-  build-windows-x64:
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        app: [app, display]
-        env: [prod, test]
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Build Windows x64 ${{ matrix.app }} ${{ matrix.env }}
-      run: |
-        if [ "${{ matrix.env }}" = "prod" ]; then
-          npm run build:prod:${{ matrix.app }}:win
-        else
-          npm run build:test:${{ matrix.app }}:win
-        fi
-      env:
-        PLACCON_MODE: ${{ matrix.app }}
-        PLACCON_ENV: ${{ matrix.env }}
-
-    - name: Upload Windows x64 ${{ matrix.app }} ${{ matrix.env }} artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: windows-x64-${{ matrix.app }}-${{ matrix.env }}
-        path: dist/*.exe
-        retention-days: 30
-
   build-windows-x86:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        app: [app, display]
-        env: [prod, test]
-    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -66,33 +22,24 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Build Windows x86 ${{ matrix.app }} ${{ matrix.env }}
+    - name: Build Windows x86 app test
       run: |
-        if [ "${{ matrix.env }}" = "prod" ]; then
-          PLACCON_MODE=${{ matrix.app }} PLACCON_ENV=${{ matrix.env }} electron-builder --config electron-builder.${{ matrix.app }}.json --win --ia32 --publish never
-        else
-          npm run prebuild:test:${{ matrix.app }}:win
-          PLACCON_MODE=${{ matrix.app }} PLACCON_ENV=${{ matrix.env }} electron-builder --config electron-builder.${{ matrix.app }}.json --win --ia32 --publish never
-          npm run postbuild:test:${{ matrix.app }}:win
-        fi
+        npm run prebuild:test:app:win
+        PLACCON_MODE=app PLACCON_ENV=test electron-builder --config electron-builder.app.json --win --ia32 --publish never
+        npm run postbuild:test:app:win
       env:
-        PLACCON_MODE: ${{ matrix.app }}
-        PLACCON_ENV: ${{ matrix.env }}
+        PLACCON_MODE: app
+        PLACCON_ENV: test
 
-    - name: Upload Windows x86 ${{ matrix.app }} ${{ matrix.env }} artifact
+    - name: Upload Windows x86 app test artifact
       uses: actions/upload-artifact@v4
       with:
-        name: windows-x86-${{ matrix.app }}-${{ matrix.env }}
+        name: windows-x86-app-test
         path: dist/*.exe
         retention-days: 30
 
   build-windows-arm64:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        app: [app, display]
-        env: [prod, test]
-    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -107,74 +54,15 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Build Windows ARM64 ${{ matrix.app }} ${{ matrix.env }}
-      run: |
-        if [ "${{ matrix.env }}" = "prod" ]; then
-          npm run build:prod:${{ matrix.app }}:win:arm
-        else
-          npm run build:test:${{ matrix.app }}:win:arm
-        fi
+    - name: Build Windows ARM64 app test
+      run: npm run build:test:app:win:arm
       env:
-        PLACCON_MODE: ${{ matrix.app }}
-        PLACCON_ENV: ${{ matrix.env }}
+        PLACCON_MODE: app
+        PLACCON_ENV: test
 
-    - name: Upload Windows ARM64 ${{ matrix.app }} ${{ matrix.env }} artifact
+    - name: Upload Windows ARM64 app test artifact
       uses: actions/upload-artifact@v4
       with:
-        name: windows-arm64-${{ matrix.app }}-${{ matrix.env }}
+        name: windows-arm64-app-test
         path: dist/*.exe
-        retention-days: 30
-
-  release:
-    needs: [build-windows-x64, build-windows-x86, build-windows-arm64]
-    runs-on: ubuntu-latest
-    steps:
-    - name: Download all Windows artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-
-    - name: Generate version
-      id: version
-      run: echo "version=$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
-
-    - name: Create release with all Windows executables
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: ${{ steps.version.outputs.version }}
-        name: Electron Release ${{ steps.version.outputs.version }}
-        body: |
-          ## Windows Electron Executables
-          
-          ### x64 (64-bit)
-          - **App (Production)**: placcon-app-prod-x64.exe
-          - **App (Test)**: placcon-app-test-x64.exe
-          - **Display (Production)**: placcon-display-prod-x64.exe
-          - **Display (Test)**: placcon-display-test-x64.exe
-          
-          ### x86 (32-bit)
-          - **App (Production)**: placcon-app-prod-x86.exe
-          - **App (Test)**: placcon-app-test-x86.exe
-          - **Display (Production)**: placcon-display-prod-x86.exe
-          - **Display (Test)**: placcon-display-test-x86.exe
-          
-          ### ARM64
-          - **App (Production)**: placcon-app-prod-arm64.exe
-          - **App (Test)**: placcon-app-test-arm64.exe
-          - **Display (Production)**: placcon-display-prod-arm64.exe
-          - **Display (Test)**: placcon-display-test-arm64.exe
-        files: |
-          artifacts/windows-x64-app-prod/*.exe
-          artifacts/windows-x64-app-test/*.exe
-          artifacts/windows-x64-display-prod/*.exe
-          artifacts/windows-x64-display-test/*.exe
-          artifacts/windows-x86-app-prod/*.exe
-          artifacts/windows-x86-app-test/*.exe
-          artifacts/windows-x86-display-prod/*.exe
-          artifacts/windows-x86-display-test/*.exe
-          artifacts/windows-arm64-app-prod/*.exe
-          artifacts/windows-arm64-app-test/*.exe
-          artifacts/windows-arm64-display-prod/*.exe
-          artifacts/windows-arm64-display-test/*.exe
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        retention-days: 30 
