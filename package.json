@@ -28,7 +28,15 @@
     "build:prod:app:mac": "PLACCON_MODE=app electron-builder --config electron-builder.app.prod.json --mac --publish never",
     "build:test:app:mac": "PLACCON_MODE=app electron-builder --config electron-builder.app.test.json --mac --publish never",
     "build:prod:display:mac": "PLACCON_MODE=display electron-builder --config electron-builder.display.prod.json --mac --publish never",
-    "build:test:display:mac": "PLACCON_MODE=display electron-builder --config electron-builder.display.test.json --mac --publish never"
+    "build:test:display:mac": "PLACCON_MODE=display electron-builder --config electron-builder.display.test.json --mac --publish never",
+    "prebuild:test:app:win": "cp src/assets/favicon-test.ico src/assets/favicon.ico && cp src/assets/favicon-test.icns src/assets/favicon.icns && cp src/assets/favicon-test.png src/assets/favicon.png",
+    "postbuild:test:app:win": "git checkout -- src/assets/favicon.ico src/assets/favicon.icns src/assets/favicon.png",
+    "build:test:app:win": "npm run prebuild:test:app:win && PLACCON_MODE=app PLACCON_ENV=test electron-builder --config electron-builder.app.json --win --publish never && npm run postbuild:test:app:win",
+    "prebuild:test:display:win": "cp src/assets/favicon-test.ico src/assets/favicon.ico && cp src/assets/favicon-test.icns src/assets/favicon.icns && cp src/assets/favicon-test.png src/assets/favicon.png",
+    "postbuild:test:display:win": "git checkout -- src/assets/favicon.ico src/assets/favicon.icns src/assets/favicon.png",
+    "build:test:display:win": "npm run prebuild:test:display:win && PLACCON_MODE=display PLACCON_ENV=test electron-builder --config electron-builder.display.json --win --publish never && npm run postbuild:test:display:win",
+    "build:prod:app:win": "PLACCON_MODE=app PLACCON_ENV=prod electron-builder --config electron-builder.app.json --win --publish never",
+    "build:prod:display:win": "PLACCON_MODE=display PLACCON_ENV=prod electron-builder --config electron-builder.display.json --win --publish never"
   },
   "author": "",
   "license": "ISC",
