@@ -61,3 +61,5 @@ jspm_packages/
 # Electron specific
 app/
 packages/ 
+
+.DS_Store

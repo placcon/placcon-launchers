@@ -49,16 +49,6 @@ jobs:
         path: dist/
         retention-days: 0
 
-    - name: List artifacts
-      run: |
-        if [ "$RUNNER_OS" = "Windows" ]; then
-          echo "Built artifacts for ${{ matrix.platform }}:"
-          Get-ChildItem -Path ./dist -Recurse
-        else
-          echo "Built artifacts for ${{ matrix.platform }}:"
-          ls -la dist/
-        fi
-
   create-release:
     needs: build
     runs-on: ubuntu-latest
