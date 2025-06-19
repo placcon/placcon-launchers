@@ -39,6 +39,10 @@
       "index.html",
       "assets/**/*"
     ],
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
+    },
     "win": {
       "target": [
         {
