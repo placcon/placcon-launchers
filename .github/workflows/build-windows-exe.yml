@@ -23,13 +23,15 @@ jobs:
       run: npm ci
 
     - name: Build Windows x86 app test
+      shell: pwsh
       run: |
-        npm run prebuild:test:app:win
-        PLACCON_MODE=app PLACCON_ENV=test electron-builder --config electron-builder.app.json --win --ia32 --publish never
-        npm run postbuild:test:app:win
-      env:
-        PLACCON_MODE: app
-        PLACCON_ENV: test
+        if (Test-Path src/assets/favicon-test.ico) { Copy-Item src/assets/favicon-test.ico src/assets/favicon.ico -Force }
+        if (Test-Path src/assets/favicon-test.icns) { Copy-Item src/assets/favicon-test.icns src/assets/favicon.icns -Force }
+        if (Test-Path src/assets/favicon-test.png) { Copy-Item src/assets/favicon-test.png src/assets/favicon.png -Force }
+        $env:PLACCON_MODE="app"
+        $env:PLACCON_ENV="test"
+        npx electron-builder --config electron-builder.app.json --win --ia32 --publish never
+        git checkout -- src/assets/favicon.ico src/assets/favicon.icns src/assets/favicon.png
 
     - name: Upload Windows x86 app test artifact
       uses: actions/upload-artifact@v4
@@ -55,10 +57,11 @@ jobs:
       run: npm ci
 
     - name: Build Windows ARM64 app test
-      run: npm run build:test:app:win:arm
-      env:
-        PLACCON_MODE: app
-        PLACCON_ENV: test
+      shell: pwsh
+      run: |
+        $env:PLACCON_MODE="app"
+        $env:PLACCON_ENV="test"
+        npx electron-builder --config electron-builder.app.json --win --arm64 --publish never
 
     - name: Upload Windows ARM64 app test artifact
       uses: actions/upload-artifact@v4
