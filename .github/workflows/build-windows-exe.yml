@@ -1,4 +1,4 @@
-name: Build Placcon Apps
+name: Build Electron Apps for Windows
 
 on: [push]
 
@@ -6,102 +6,175 @@ permissions:
   contents: write
 
 jobs:
-  build-windows:
+  build-windows-x64:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        app: [app, display]
+        env: [prod, test]
+    
     steps:
-    - name: Teljes repository checkout (tagekkel)
+    - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
-        fetch-depth: 0
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
 
-    - name: Python beállítása
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.x'
-        architecture: x86
+    - name: Install dependencies
+      run: npm ci
 
-    - name: Függőségek telepítése (PyInstaller és requirements)
+    - name: Build Windows x64 ${{ matrix.app }} ${{ matrix.env }}
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        if [ "${{ matrix.env }}" = "prod" ]; then
+          npm run build:prod:${{ matrix.app }}:win
+        else
+          npm run build:test:${{ matrix.app }}:win
+        fi
+      env:
+        PLACCON_MODE: ${{ matrix.app }}
+        PLACCON_ENV: ${{ matrix.env }}
 
-    - name: placcon_display.exe buildelése (kiosk, placcon1)
-      run: |
-        pyinstaller --onefile --windowed --icon="placcon.ico" --name "placcon_display" launch_placcon.py -- --profile placcon1 --kiosk
-
-    - name: placcon.exe buildelése (fullscreen app, placconapp)
-      run: |
-        pyinstaller --onefile --windowed --icon="placcon.ico" --name "placcon" launch_placcon.py -- --profile placconapp
-
-    - name: Buildelt Exék feltöltése artifactként
+    - name: Upload Windows x64 ${{ matrix.app }} ${{ matrix.env }} artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Windows-Placcon-Executables
-        path: |
-          dist/placcon_display.exe
-          dist/placcon.exe
+        name: windows-x64-${{ matrix.app }}-${{ matrix.env }}
+        path: dist/*.exe
+        retention-days: 30
 
-  # build-macos:
-  #   runs-on: macos-latest
-  #   steps:
-  #   - name: Teljes repository checkout (tagekkel)
-  #     uses: actions/checkout@v4
-  #     with:
-  #       fetch-depth: 0
-  #
-  #   - name: Python beállítása
-  #     uses: actions/setup-python@v5
-  #     with:
-  #       python-version: '3.x'
-  #
-  #   - name: Függőségek telepítése (PyInstaller és requirements)
-  #     run: |
-  #       python -m pip install --upgrade pip
-  #       pip install -r requirements.txt
-  #
-  #   - name: placcon_display.app buildelése (kiosk, placcon1)
-  #     run: |
-  #       pyinstaller --onefile --windowed --icon="placcon.icns" --name "placcon_display" launch_placcon.py -- --profile placcon1 --kiosk
-  #       cd dist && zip -r placcon_display.app.zip placcon_display.app && cd ..
-  #
-  #   - name: placcon.app buildelése (fullscreen app, placconapp)
-  #     run: |
-  #       pyinstaller --onefile --windowed --icon="placcon.icns" --name "placcon" launch_placcon.py -- --profile placconapp
-  #       cd dist && zip -r placcon.app.zip placcon.app && cd ..
-  #
-  #   - name: Buildelt Appok feltöltése artifactként
-  #     uses: actions/upload-artifact@v4
-  #     with:
-  #       name: MacOS-Placcon-Apps
-  #       path: |
-  #         dist/placcon_display.app.zip
-  #         dist/placcon.app.zip
+  build-windows-x86:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        app: [app, display]
+        env: [prod, test]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build Windows x86 ${{ matrix.app }} ${{ matrix.env }}
+      run: |
+        if [ "${{ matrix.env }}" = "prod" ]; then
+          PLACCON_MODE=${{ matrix.app }} PLACCON_ENV=${{ matrix.env }} electron-builder --config electron-builder.${{ matrix.app }}.json --win --ia32 --publish never
+        else
+          npm run prebuild:test:${{ matrix.app }}:win
+          PLACCON_MODE=${{ matrix.app }} PLACCON_ENV=${{ matrix.env }} electron-builder --config electron-builder.${{ matrix.app }}.json --win --ia32 --publish never
+          npm run postbuild:test:${{ matrix.app }}:win
+        fi
+      env:
+        PLACCON_MODE: ${{ matrix.app }}
+        PLACCON_ENV: ${{ matrix.env }}
+
+    - name: Upload Windows x86 ${{ matrix.app }} ${{ matrix.env }} artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-x86-${{ matrix.app }}-${{ matrix.env }}
+        path: dist/*.exe
+        retention-days: 30
+
+  build-windows-arm64:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        app: [app, display]
+        env: [prod, test]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build Windows ARM64 ${{ matrix.app }} ${{ matrix.env }}
+      run: |
+        if [ "${{ matrix.env }}" = "prod" ]; then
+          npm run build:prod:${{ matrix.app }}:win:arm
+        else
+          npm run build:test:${{ matrix.app }}:win:arm
+        fi
+      env:
+        PLACCON_MODE: ${{ matrix.app }}
+        PLACCON_ENV: ${{ matrix.env }}
+
+    - name: Upload Windows ARM64 ${{ matrix.app }} ${{ matrix.env }} artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-arm64-${{ matrix.app }}-${{ matrix.env }}
+        path: dist/*.exe
+        retention-days: 30
 
   release:
-    needs: [build-windows]
+    needs: [build-windows-x64, build-windows-x86, build-windows-arm64]
     runs-on: ubuntu-latest
     steps:
-    - name: Windows artifact letöltése
+    - name: Download all Windows artifacts
       uses: actions/download-artifact@v4
       with:
-        name: Windows-Placcon-Executables
-        path: artifacts/windows
+        path: artifacts
 
-    # - name: MacOS artifact letöltése
-    #   uses: actions/download-artifact@v4
-    #   with:
-    #     name: MacOS-Placcon-Apps
-    #     path: artifacts/macos
+    - name: Generate version
+      id: version
+      run: echo "version=$(date +'%Y.%m.%d-%H%M')" >> $GITHUB_OUTPUT
 
-    - name: GitHub Release létrehozása és fájlok feltöltése
+    - name: Create release with all Windows executables
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: 1.4.0
-        name: 1.4.0
+        tag_name: ${{ steps.version.outputs.version }}
+        name: Electron Release ${{ steps.version.outputs.version }}
+        body: |
+          ## Windows Electron Executables
+          
+          ### x64 (64-bit)
+          - **App (Production)**: placcon-app-prod-x64.exe
+          - **App (Test)**: placcon-app-test-x64.exe
+          - **Display (Production)**: placcon-display-prod-x64.exe
+          - **Display (Test)**: placcon-display-test-x64.exe
+          
+          ### x86 (32-bit)
+          - **App (Production)**: placcon-app-prod-x86.exe
+          - **App (Test)**: placcon-app-test-x86.exe
+          - **Display (Production)**: placcon-display-prod-x86.exe
+          - **Display (Test)**: placcon-display-test-x86.exe
+          
+          ### ARM64
+          - **App (Production)**: placcon-app-prod-arm64.exe
+          - **App (Test)**: placcon-app-test-arm64.exe
+          - **Display (Production)**: placcon-display-prod-arm64.exe
+          - **Display (Test)**: placcon-display-test-arm64.exe
         files: |
-          artifacts/windows/placcon_display.exe
-          artifacts/windows/placcon.exe
-          artifacts/macos/placcon_display.app.zip
-          artifacts/macos/placcon.app.zip
+          artifacts/windows-x64-app-prod/*.exe
+          artifacts/windows-x64-app-test/*.exe
+          artifacts/windows-x64-display-prod/*.exe
+          artifacts/windows-x64-display-test/*.exe
+          artifacts/windows-x86-app-prod/*.exe
+          artifacts/windows-x86-app-test/*.exe
+          artifacts/windows-x86-display-prod/*.exe
+          artifacts/windows-x86-display-test/*.exe
+          artifacts/windows-arm64-app-prod/*.exe
+          artifacts/windows-arm64-app-test/*.exe
+          artifacts/windows-arm64-display-prod/*.exe
+          artifacts/windows-arm64-display-test/*.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
