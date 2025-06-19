@@ -1,0 +1,46 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [ electron-v2 ]
+  pull_request:
+    branches: [ electron-v2 ]
+
+jobs:
+  build-win:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build for Windows
+      run: npm run build:win
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+    - name: Clean dist folder (keep only EXE files)
+      run: |
+        Get-ChildItem -Path ./dist -Recurse -File | Where-Object { $_.Extension -ne '.exe' } | Remove-Item -Force
+        Get-ChildItem -Path ./dist -Recurse -Directory | Where-Object { (Get-ChildItem $_.FullName -Recurse | Measure-Object).Count -eq 0 } | Remove-Item -Force
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: placcon-launcher-win
+        path: dist/
+        retention-days: 0
+
+    - name: List artifacts
+      run: |
+        echo "Built artifacts for Windows:"
+        Get-ChildItem -Path ./dist -Recurse 
