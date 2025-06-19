@@ -1,0 +1,58 @@
+name: Build Electron App
+
+on:
+  push:
+    branches: [ electron-v2 ]
+  pull_request:
+    branches: [ electron-v2 ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - os: macos-latest
+            platform: mac
+            artifact-pattern: "*.dmg"
+          - os: ubuntu-latest
+            platform: linux
+            artifact-pattern: "*.deb"
+          - os: windows-latest
+            platform: win
+            artifact-pattern: "*.exe"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build for ${{ matrix.platform }}
+      run: npm run build:${{ matrix.platform }}
+
+    - name: Clean dist folder (keep only installers)
+      run: |
+        find ./dist -type f ! \( -name '${{ matrix.artifact-pattern }}' \) -delete
+        find ./dist -type d -empty -delete
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: placcon-launcher-${{ matrix.platform }}
+        path: dist/
+        retention-days: 0  # Keep forever
+
+    - name: List artifacts
+      run: |
+        echo "Built artifacts for ${{ matrix.platform }}:"
+        ls -la dist/ 
