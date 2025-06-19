@@ -65,16 +65,17 @@ npm run build:linux
 
 The project includes GitHub Actions workflows for automated builds:
 
-1. **Build Workflow** (`build.yml`):
-   - Triggers on push/PR to `electron-v2` branch
-   - Builds for all platforms (Windows, macOS, Linux)
-   - Uploads installers as artifacts (kept forever)
-   - Access artifacts from GitHub Actions tab
+1. **Build Workflows**:
+   - `build-mac.yml` - Builds for macOS (DMG)
+   - `build-win.yml` - Builds for Windows (EXE)
+   - `build-linux.yml` - Builds for Linux (DEB)
+   - All trigger on push/PR to `electron-v2` branch
+   - Upload installers as artifacts (kept forever)
 
-2. **Release Workflow** (`release.yml`):
-   - Triggers when pushing a tag (e.g., `v1.0.0`)
-   - Creates a GitHub release with all platform installers
-   - Automatically generates release notes
+2. **Release Workflows**:
+   - `create-release.yml` - Creates release from all build artifacts with auto-incrementing version
+   - `release.yml` - Creates release when pushing tags (e.g., `v1.0.0`)
+   - Both include all platform installers
 
 ### Build Outputs
 
@@ -158,3 +159,11 @@ Check the console output for any error messages during development or build.
 ## License
 
 MIT License 
+
+### Version Management
+
+The project uses automatic version incrementing:
+- **Starting version**: v1.4.0 (current latest)
+- **Auto-increment**: Minor version increases with each build (1.4.0 → 1.5.0 → 1.6.0...)
+- **Manual tags**: Can still use manual tags for specific releases
+- **Package.json**: Automatically updated with new version numbers 
