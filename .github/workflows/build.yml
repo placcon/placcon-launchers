@@ -44,8 +44,13 @@ jobs:
 
     - name: Clean dist folder (keep only installers)
       run: |
-        find ./dist -type f ! \( -name '${{ matrix.artifact-pattern }}' \) -delete
-        find ./dist -type d -empty -delete
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          Get-ChildItem -Path ./dist -Recurse -File | Where-Object { $_.Extension -notmatch '\.(exe|dmg|deb)$' } | Remove-Item -Force
+          Get-ChildItem -Path ./dist -Recurse -Directory | Where-Object { (Get-ChildItem $_.FullName -Recurse | Measure-Object).Count -eq 0 } | Remove-Item -Force
+        else
+          find ./dist -type f ! \( -name '*.exe' -o -name '*.dmg' -o -name '*.deb' \) -delete
+          find ./dist -type d -empty -delete
+        fi
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
