@@ -1,0 +1,85 @@
+{
+  "name": "placcon-apps",
+  "version": "1.0.0",
+  "description": "Placcon Applications",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "npm run build:app && npm run build:display",
+    "build:app": "electron-builder --config electron-builder.app.json",
+    "build:display": "electron-builder --config electron-builder.display.json",
+    "build:mac": "npm run build:app:mac && npm run build:display:mac",
+    "build:win": "npm run build:app:win && npm run build:display:win",
+    "build:win:arm": "npm run build:app:win:arm && npm run build:display:win:arm",
+    "build:app:mac": "electron-builder --config electron-builder.app.json --mac --publish never",
+    "build:app:win": "electron-builder --config electron-builder.app.json --win --publish never",
+    "build:app:win:arm": "electron-builder --config electron-builder.app.json --win --arm64 --publish never",
+    "build:display:mac": "electron-builder --config electron-builder.display.json --mac --publish never",
+    "build:display:win": "electron-builder --config electron-builder.display.json --win --publish never",
+    "build:display:win:arm": "electron-builder --config electron-builder.display.json --win --arm64 --publish never",
+    "prebuild:test:app:win:arm": "cp src/assets/favicon-test.ico src/assets/favicon.ico && cp src/assets/favicon-test.icns src/assets/favicon.icns && cp src/assets/favicon-test.png src/assets/favicon.png",
+    "postbuild:test:app:win:arm": "git checkout -- src/assets/favicon.ico src/assets/favicon.icns src/assets/favicon.png",
+    "build:test:app:win:arm": "npm run prebuild:test:app:win:arm && PLACCON_MODE=app PLACCON_ENV=test electron-builder --config electron-builder.app.json --win --arm64 --publish never && npm run postbuild:test:app:win:arm",
+    "prebuild:test:display:win:arm": "cp src/assets/favicon-test.ico src/assets/favicon.ico && cp src/assets/favicon-test.icns src/assets/favicon.icns && cp src/assets/favicon-test.png src/assets/favicon.png",
+    "postbuild:test:display:win:arm": "git checkout -- src/assets/favicon.ico src/assets/favicon.icns src/assets/favicon.png",
+    "build:test:display:win:arm": "npm run prebuild:test:display:win:arm && PLACCON_MODE=display PLACCON_ENV=test electron-builder --config electron-builder.display.json --win --arm64 --publish never && npm run postbuild:test:display:win:arm",
+    "build:prod:app:win:arm": "PLACCON_MODE=app PLACCON_ENV=prod electron-builder --config electron-builder.app.json --win --arm64 --publish never",
+    "build:prod:display:win:arm": "PLACCON_MODE=display PLACCON_ENV=prod electron-builder --config electron-builder.display.json --win --arm64 --publish never",
+    "build:prod:app:mac": "PLACCON_MODE=app electron-builder --config electron-builder.app.prod.json --mac --publish never",
+    "build:test:app:mac": "PLACCON_MODE=app electron-builder --config electron-builder.app.test.json --mac --publish never",
+    "build:prod:display:mac": "PLACCON_MODE=display electron-builder --config electron-builder.display.prod.json --mac --publish never",
+    "build:test:display:mac": "PLACCON_MODE=display electron-builder --config electron-builder.display.test.json --mac --publish never"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.9.1",
+    "ffmpeg-static": "^5.2.0"
+  },
+  "build": {
+    "appId": "com.placcon.launcher",
+    "productName": "Placcon Launcher",
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "entitlements": null,
+      "entitlementsInherit": null,
+      "icon": "src/assets/favicon.icns"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "src/assets/favicon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "src/assets/favicon.png"
+    },
+    "extraResources": [
+      {
+        "from": "src/assets",
+        "to": "assets"
+      }
+    ],
+    "files": [
+      "src/**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ]
+  }
+}
