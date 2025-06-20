@@ -51,25 +51,65 @@ if [ ! -z "$DEB_FILES" ]; then
     echo "$DEB_FILES"
 fi
 
+# Rename files with platform prefixes
+echo -e "${GREEN}Renaming files with platform prefixes...${NC}"
+
+# Get version from package.json
+VERSION=$(node -p "require('./package.json').version")
+
+# Rename DMG file (macOS)
+DMG_FILE=$(echo "$DMG_FILES" | head -1)
+if [ ! -z "$DMG_FILE" ]; then
+    NEW_DMG_NAME="osx-Placcon-Launcher-$VERSION-arm64.dmg"
+    NEW_DMG_PATH=$(dirname "$DMG_FILE")/$NEW_DMG_NAME
+    mv "$DMG_FILE" "$NEW_DMG_PATH"
+    echo "Renamed DMG: $NEW_DMG_NAME"
+fi
+
+# Rename EXE file (Windows)
+EXE_FILE=$(echo "$EXE_FILES" | head -1)
+if [ ! -z "$EXE_FILE" ]; then
+    NEW_EXE_NAME="windows-Placcon-Launcher-Setup-$VERSION.exe"
+    NEW_EXE_PATH=$(dirname "$EXE_FILE")/$NEW_EXE_NAME
+    mv "$EXE_FILE" "$NEW_EXE_PATH"
+    echo "Renamed EXE: $NEW_EXE_NAME"
+fi
+
+# Rename DEB files (Linux)
+for DEB_FILE in $DEB_FILES; do
+    if [[ "$DEB_FILE" == *"amd64"* ]]; then
+        NEW_DEB_NAME="linux-placcon-launcher-$VERSION-amd64.deb"
+    elif [[ "$DEB_FILE" == *"arm64"* ]]; then
+        NEW_DEB_NAME="linux-placcon-launcher-$VERSION-arm64.deb"
+    else
+        NEW_DEB_NAME="linux-$(basename "$DEB_FILE")"
+    fi
+    NEW_DEB_PATH=$(dirname "$DEB_FILE")/$NEW_DEB_NAME
+    mv "$DEB_FILE" "$NEW_DEB_PATH"
+    echo "Renamed DEB: $NEW_DEB_NAME"
+done
+
 # Create final file list (one file per platform)
 FINAL_FILES=""
 
-# Add one DMG file (ARM64)
-DMG_FILE=$(echo "$DMG_FILES" | head -1)
+# Add renamed DMG file (ARM64)
 if [ ! -z "$DMG_FILE" ]; then
-    FINAL_FILES="$FINAL_FILES $DMG_FILE"
+    FINAL_FILES="$FINAL_FILES $NEW_DMG_PATH"
 fi
 
-# Add one EXE file (Setup)
-EXE_FILE=$(echo "$EXE_FILES" | head -1)
+# Add renamed EXE file (Setup)
 if [ ! -z "$EXE_FILE" ]; then
-    FINAL_FILES="$FINAL_FILES $EXE_FILE"
+    FINAL_FILES="$FINAL_FILES $NEW_EXE_PATH"
 fi
 
-# Add DEB files (both architectures)
-if [ ! -z "$DEB_FILES" ]; then
-    FINAL_FILES="$FINAL_FILES $DEB_FILES"
-fi
+# Add renamed DEB files (both architectures)
+for DEB_FILE in $DEB_FILES; do
+    if [[ "$DEB_FILE" == *"amd64"* ]]; then
+        FINAL_FILES="$FINAL_FILES $(dirname "$DEB_FILE")/linux-placcon-launcher-$VERSION-amd64.deb"
+    elif [[ "$DEB_FILE" == *"arm64"* ]]; then
+        FINAL_FILES="$FINAL_FILES $(dirname "$DEB_FILE")/linux-placcon-launcher-$VERSION-arm64.deb"
+    fi
+done
 
 echo -e "${GREEN}Final release files:${NC}"
 echo "$FINAL_FILES"

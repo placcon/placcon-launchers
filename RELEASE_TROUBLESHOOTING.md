@@ -65,9 +65,9 @@ npm run build:linux
 
 #### B. Fájl útvonalak javítása
 A workflow fájlokban ellenőrizd a fájl útvonalakat:
-- `artifacts/placcon-launcher-mac/**/Placcon Launcher-*-arm64.dmg` (csak ARM64)
-- `artifacts/placcon-launcher-win/**/Placcon Launcher Setup *.exe` (csak Setup)
-- `artifacts/placcon-launcher-linux/**/placcon-launcher_*.deb` (csak fő csomagok)
+- `artifacts/placcon-launcher-mac/**/osx-Placcon-Launcher-*-arm64.dmg` (csak ARM64)
+- `artifacts/placcon-launcher-win/**/windows-Placcon-Launcher-Setup-*.exe` (csak Setup)
+- `artifacts/placcon-launcher-linux/**/linux-placcon-launcher-*.deb` (csak fő csomagok)
 
 #### C. Icon fájlok ellenőrzése
 Ellenőrizd, hogy minden szükséges icon fájl létezik:

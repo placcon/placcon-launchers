@@ -5,18 +5,18 @@ Ez a dokumentum leírja, hogy mely fájlok kerülnek feltöltésre a release-ekb
 ## Feltöltött fájlok
 
 ### macOS
-- **Fájl:** `Placcon Launcher-{version}-arm64.dmg`
-- **Példa:** `Placcon Launcher-1.5.0-arm64.dmg`
+- **Fájl:** `osx-Placcon-Launcher-{version}-arm64.dmg`
+- **Példa:** `osx-Placcon-Launcher-1.5.0-arm64.dmg`
 - **Megjegyzés:** Csak az ARM64 (Apple Silicon) verzió kerül feltöltésre
 
 ### Windows
-- **Fájl:** `Placcon Launcher Setup {version}.exe`
-- **Példa:** `Placcon Launcher Setup 1.5.0.exe`
+- **Fájl:** `windows-Placcon-Launcher-Setup-{version}.exe`
+- **Példa:** `windows-Placcon-Launcher-Setup-1.5.0.exe`
 - **Megjegyzés:** Csak a Setup installer kerül feltöltésre, nem a standalone .exe
 
 ### Linux
-- **Fájl:** `placcon-launcher_{version}_{arch}.deb`
-- **Példa:** `placcon-launcher_1.5.0_amd64.deb`, `placcon-launcher_1.5.0_arm64.deb`
+- **Fájl:** `linux-placcon-launcher-{version}_{arch}.deb`
+- **Példa:** `linux-placcon-launcher-1.5.0-amd64.deb`, `linux-placcon-launcher-1.5.0-arm64.deb`
 - **Megjegyzés:** Mindkét architektúra (AMD64 és ARM64) kerül feltöltésre
 
 ## Kizárt fájlok
@@ -42,12 +42,15 @@ A release workflow-ok a következő szabályokat követik:
 ```bash
 # macOS - csak ARM64 DMG (egy fájl)
 find artifacts -name "*.dmg" | grep -E "Placcon Launcher-[0-9]+\.[0-9]+\.[0-9]+-arm64" | head -1
+# Átnevezés: osx-Placcon-Launcher-{version}-arm64.dmg
 
 # Windows - csak Setup EXE (egy fájl)
 find artifacts -name "*.exe" | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+\.exe$" | head -1
+# Átnevezés: windows-Placcon-Launcher-Setup-{version}.exe
 
 # Linux - csak DEB csomagok (mindkét architektúra)
 find artifacts -name "*.deb" | grep -E "placcon-launcher_[0-9]+\.[0-9]+\.[0-9]+"
+# Átnevezés: linux-placcon-launcher-{version}-{arch}.deb
 ```
 
 ## Duplikált fájlok kezelése
@@ -56,6 +59,7 @@ find artifacts -name "*.deb" | grep -E "placcon-launcher_[0-9]+\.[0-9]+\.[0-9]+"
 - **head -1:** Biztosítja, hogy csak az első talált fájl kerüljön felhasználásra
 - **sort -u:** Eltávolítja a duplikált fájlokat a listából
 - **GitHub CLI:** Automatikusan kezeli a duplikált asset-eket
+- **Platform prefix:** Minden fájl platform prefix-et kap (osx-, windows-, linux-)
 
 ## Hibaelhárítás
 
