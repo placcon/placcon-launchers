@@ -80,57 +80,64 @@ jobs:
         DMG_FILES=$(find artifacts -name "*.dmg" -type f | grep -E "Placcon Launcher-[0-9]+\.[0-9]+\.[0-9]+-arm64" | sort -u)
         echo "DMG files found: $DMG_FILES"
         
-        # Find EXE files (only main installers, exclude duplicates and helper files)
-        EXE_FILES=$(find artifacts -name "*.exe" -type f | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+" | sort -u)
+        # Find EXE files (only main Setup installers, be more specific)
+        EXE_FILES=$(find artifacts -name "*.exe" -type f | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+\.exe$" | sort -u)
         echo "EXE files found: $EXE_FILES"
         
         # Find DEB files (only main packages)
         DEB_FILES=$(find artifacts -name "*.deb" -type f | grep -E "placcon-launcher_[0-9]+\.[0-9]+\.[0-9]+" | sort -u)
         echo "DEB files found: $DEB_FILES"
         
-        # Create file list for release
+        # Create file list for release (one file per platform)
         RELEASE_FILES=""
-        if [ ! -z "$DMG_FILES" ]; then
-          RELEASE_FILES="$RELEASE_FILES $DMG_FILES"
+        
+        # Add one DMG file (ARM64)
+        DMG_FILE=$(echo "$DMG_FILES" | head -1)
+        if [ ! -z "$DMG_FILE" ]; then
+          RELEASE_FILES="$RELEASE_FILES $DMG_FILE"
         fi
-        if [ ! -z "$EXE_FILES" ]; then
-          RELEASE_FILES="$RELEASE_FILES $EXE_FILES"
+        
+        # Add one EXE file (Setup)
+        EXE_FILE=$(echo "$EXE_FILES" | head -1)
+        if [ ! -z "$EXE_FILE" ]; then
+          RELEASE_FILES="$RELEASE_FILES $EXE_FILE"
         fi
+        
+        # Add DEB files (both architectures)
         if [ ! -z "$DEB_FILES" ]; then
           RELEASE_FILES="$RELEASE_FILES $DEB_FILES"
         fi
         
-        echo "Release files: $RELEASE_FILES"
+        echo "Final release files: $RELEASE_FILES"
         echo "files=$RELEASE_FILES" >> $GITHUB_OUTPUT
 
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: ${{ steps.find_files.outputs.files }}
-        generate_release_notes: true
-        draft: false
-        prerelease: false
-        token: ${{ secrets.GITHUB_TOKEN }}
-      continue-on-error: true
-
-    - name: Create Release with GitHub CLI (fallback)
-      if: failure()
+    - name: Clean existing release assets
       run: |
-        # Install GitHub CLI
-        type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
-        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-        && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-        && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-        && sudo apt update \
-        && sudo apt install gh -y
-        
         # Get tag name
         TAG_NAME=${GITHUB_REF#refs/tags/}
+        echo "Cleaning existing assets for tag: $TAG_NAME"
         
-        # Create release
-        gh release create $TAG_NAME \
+        # Check if release exists and delete existing assets
+        if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+          echo "Release exists, cleaning assets..."
+          gh release delete-asset "$TAG_NAME" --yes || true
+        else
+          echo "Release does not exist yet"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
+
+    - name: Create Release with GitHub CLI
+      run: |
+        # Get tag name
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        echo "Creating release for tag: $TAG_NAME"
+        
+        # Create release with files
+        gh release create "$TAG_NAME" \
           --title "Release $TAG_NAME" \
-          --notes "Automated release for $TAG_NAME" \
+          --notes "Placcon Launcher $TAG_NAME - Automated release with macOS ARM64, Windows Setup, and Linux DEB packages" \
           --draft=false \
           --prerelease=false \
           ${{ steps.find_files.outputs.files }}

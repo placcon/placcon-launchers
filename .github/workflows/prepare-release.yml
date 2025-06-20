@@ -80,27 +80,35 @@ jobs:
         DMG_FILES=$(find artifacts -name "*.dmg" -type f | grep -E "Placcon Launcher-[0-9]+\.[0-9]+\.[0-9]+-arm64" | sort -u)
         echo "DMG files found: $DMG_FILES"
         
-        # Find EXE files (only main installers, exclude duplicates and helper files)
-        EXE_FILES=$(find artifacts -name "*.exe" -type f | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+" | sort -u)
+        # Find EXE files (only main Setup installers, be more specific)
+        EXE_FILES=$(find artifacts -name "*.exe" -type f | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+\.exe$" | sort -u)
         echo "EXE files found: $EXE_FILES"
         
         # Find DEB files (only main packages)
         DEB_FILES=$(find artifacts -name "*.deb" -type f | grep -E "placcon-launcher_[0-9]+\.[0-9]+\.[0-9]+" | sort -u)
         echo "DEB files found: $DEB_FILES"
         
-        # Create file list for release
+        # Create file list for release (one file per platform)
         RELEASE_FILES=""
-        if [ ! -z "$DMG_FILES" ]; then
-          RELEASE_FILES="$RELEASE_FILES $DMG_FILES"
+        
+        # Add one DMG file (ARM64)
+        DMG_FILE=$(echo "$DMG_FILES" | head -1)
+        if [ ! -z "$DMG_FILE" ]; then
+          RELEASE_FILES="$RELEASE_FILES $DMG_FILE"
         fi
-        if [ ! -z "$EXE_FILES" ]; then
-          RELEASE_FILES="$RELEASE_FILES $EXE_FILES"
+        
+        # Add one EXE file (Setup)
+        EXE_FILE=$(echo "$EXE_FILES" | head -1)
+        if [ ! -z "$EXE_FILE" ]; then
+          RELEASE_FILES="$RELEASE_FILES $EXE_FILE"
         fi
+        
+        # Add DEB files (both architectures)
         if [ ! -z "$DEB_FILES" ]; then
           RELEASE_FILES="$RELEASE_FILES $DEB_FILES"
         fi
         
-        echo "Release files: $RELEASE_FILES"
+        echo "Final release files: $RELEASE_FILES"
         echo "files=$RELEASE_FILES" >> $GITHUB_OUTPUT
 
     - name: Create release summary

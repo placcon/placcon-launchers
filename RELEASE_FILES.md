@@ -40,19 +40,22 @@ Ez a dokumentum leírja, hogy mely fájlok kerülnek feltöltésre a release-ekb
 A release workflow-ok a következő szabályokat követik:
 
 ```bash
-# macOS - csak ARM64 DMG
-find artifacts -name "*.dmg" | grep -E "Placcon Launcher-[0-9]+\.[0-9]+\.[0-9]+-arm64"
+# macOS - csak ARM64 DMG (egy fájl)
+find artifacts -name "*.dmg" | grep -E "Placcon Launcher-[0-9]+\.[0-9]+\.[0-9]+-arm64" | head -1
 
-# Windows - csak Setup EXE
-find artifacts -name "*.exe" | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+"
+# Windows - csak Setup EXE (egy fájl)
+find artifacts -name "*.exe" | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+\.exe$" | head -1
 
-# Linux - csak DEB csomagok
+# Linux - csak DEB csomagok (mindkét architektúra)
 find artifacts -name "*.deb" | grep -E "placcon-launcher_[0-9]+\.[0-9]+\.[0-9]+"
 ```
 
 ## Duplikált fájlok kezelése
 
-A `sort -u` parancs biztosítja, hogy minden fájl csak egyszer kerüljön feltöltésre, még akkor is, ha több példány található.
+- **Egy fájl per platform:** Minden platformról csak egy fő installer kerül feltöltésre
+- **head -1:** Biztosítja, hogy csak az első talált fájl kerüljön felhasználásra
+- **sort -u:** Eltávolítja a duplikált fájlokat a listából
+- **GitHub CLI:** Automatikusan kezeli a duplikált asset-eket
 
 ## Hibaelhárítás
 
