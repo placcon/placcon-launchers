@@ -99,9 +99,9 @@ jobs:
         tag_name: ${{ steps.get_version.outputs.new_tag }}
         name: Release ${{ steps.get_version.outputs.new_version }}
         files: |
-          artifacts/placcon-launcher-mac/**/*.dmg
-          artifacts/placcon-launcher-win/**/*.exe
-          artifacts/placcon-launcher-linux/**/*.deb
+          artifacts/placcon-launcher-mac/**/Placcon Launcher-*-arm64.dmg
+          artifacts/placcon-launcher-win/**/Placcon Launcher Setup *.exe
+          artifacts/placcon-launcher-linux/**/placcon-launcher_*.deb
         generate_release_notes: true
         draft: false
         prerelease: false

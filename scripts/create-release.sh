@@ -31,9 +31,9 @@ npm run build:all
 
 # Find release files
 echo -e "${GREEN}Finding release files...${NC}"
-DMG_FILES=$(find dist -name "*.dmg" -type f)
-EXE_FILES=$(find dist -name "*.exe" -type f)
-DEB_FILES=$(find dist -name "*.deb" -type f)
+DMG_FILES=$(find dist -name "*.dmg" -type f | grep -E "Placcon Launcher-[0-9]+\.[0-9]+\.[0-9]+-arm64" | sort -u)
+EXE_FILES=$(find dist -name "*.exe" -type f | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+" | sort -u)
+DEB_FILES=$(find dist -name "*.deb" -type f | grep -E "placcon-launcher_[0-9]+\.[0-9]+\.[0-9]+" | sort -u)
 
 echo -e "${YELLOW}Found files:${NC}"
 if [ ! -z "$DMG_FILES" ]; then

@@ -67,6 +67,7 @@ Ha 403-as hibát kapsz a release létrehozásakor:
 1. Ellenőrizd a repository jogosultságokat
 2. Használd a `prepare-release.yml` workflow-t
 3. Manuálisan hozd létre a release-t a GitHub webes felületén
+4. Vagy használd a release script-et: `npm run release v1.5.0`
 
 ## Build konfiguráció
 

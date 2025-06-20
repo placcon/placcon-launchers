@@ -76,16 +76,16 @@ jobs:
         echo ""
         echo "Looking for release files:"
         
-        # Find DMG files
-        DMG_FILES=$(find artifacts -name "*.dmg" -type f)
+        # Find DMG files (only ARM64 installers)
+        DMG_FILES=$(find artifacts -name "*.dmg" -type f | grep -E "Placcon Launcher-[0-9]+\.[0-9]+\.[0-9]+-arm64" | sort -u)
         echo "DMG files found: $DMG_FILES"
         
-        # Find EXE files  
-        EXE_FILES=$(find artifacts -name "*.exe" -type f)
+        # Find EXE files (only main installers, exclude duplicates and helper files)
+        EXE_FILES=$(find artifacts -name "*.exe" -type f | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+" | sort -u)
         echo "EXE files found: $EXE_FILES"
         
-        # Find DEB files
-        DEB_FILES=$(find artifacts -name "*.deb" -type f)
+        # Find DEB files (only main packages)
+        DEB_FILES=$(find artifacts -name "*.deb" -type f | grep -E "placcon-launcher_[0-9]+\.[0-9]+\.[0-9]+" | sort -u)
         echo "DEB files found: $DEB_FILES"
         
         # Create file list for release
