@@ -25,10 +25,9 @@ git push origin v1.8.0
 ### 2. Automatikus verzió frissítés
 A GitHub Actions workflow automatikusan:
 1. Ellenőrzi, hogy létezik-e már a release
-2. Kiolvassa a tag verzióját
-3. Frissíti a `package.json` verzióját
-4. Build-eli az alkalmazást a helyes verzióval
-5. Létrehozza a release-t
+2. Kiolvassa a `package.json` verzióját
+3. Build-eli az alkalmazást a package.json verziójával
+4. Létrehozza a release-t
 
 ### 3. Release létezés ellenőrzése
 ```bash
@@ -58,22 +57,22 @@ fi
 ## Hibaelhárítás
 
 ### Verzió eltérés
-Ha a package.json verziója nem egyezik a tag-gel:
+Ha a package.json verziója nem megfelelő:
 
-1. **Ellenőrizd a tag-et:**
+1. **Ellenőrizd a package.json-t:**
    ```bash
-   git tag --list
+   cat package.json | grep '"version"'
    ```
 
 2. **Frissítsd a package.json-t:**
    ```bash
-   npm version 1.5.0 --no-git-tag-version
+   npm version 1.8.0 --no-git-tag-version
    ```
 
 3. **Commit-old a változásokat:**
    ```bash
    git add package.json
-   git commit -m "Update version to 1.5.0"
+   git commit -m "Update version to 1.8.0"
    git push
    ```
 
@@ -88,8 +87,8 @@ A workflow automatikusan kezeli a verzió szinkronizációt, de ha problémák v
 A workflow automatikusan kezeli a release létrehozást, de ha problémák vannak:
 
 1. **Ellenőrizd a workflow logokat**
-2. **Nézd meg a "Check if release already exists" lépést**
-3. **Ellenőrizd, hogy a tag formátuma helyes-e**
+2. **Nézd meg a "Get version from package.json" lépést**
+3. **Ellenőrizd, hogy a package.json verziója helyes-e**
 4. **Használd a check-release script-et: `npm run check-release v1.8.0`**
 
 ### Release már létezik
@@ -133,3 +132,15 @@ git push origin v1.5.0
 - `.github/workflows/prepare-release.yml` - Prepare release workflow
 - `package.json` - Projekt verzió
 - `scripts/create-release.sh` - Release script 
+
+### 3. Verzió kezelés
+```bash
+# A felhasználó manuálisan frissíti a package.json verzióját
+npm version 1.8.0 --no-git-tag-version
+git add package.json
+git commit -m "Update version to 1.8.0"
+git push
+
+# A workflow automatikusan kiolvassa a verziót:
+VERSION=$(node -p "require('./package.json').version")
+``` 

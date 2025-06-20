@@ -114,14 +114,6 @@ jobs:
         echo "Version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-    - name: Update package.json version
-      run: |
-        VERSION=${{ steps.get_version.outputs.version }}
-        echo "Updating package.json version to: $VERSION"
-        npm version $VERSION --no-git-tag-version
-        echo "Updated package.json version:"
-        cat package.json | grep '"version"'
-
     - name: Build for ${{ matrix.platform }}
       run: npm run build:${{ matrix.platform }}
 
