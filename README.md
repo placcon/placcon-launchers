@@ -72,6 +72,7 @@ Vagy használhatod a GitHub Actions manuális trigger-t:
 
 A workflow platform-specifikus fájlokat hoz létre:
 - `osx-Placcon-Launcher-{verzió}-arm64.dmg` - macOS ARM64
+  -  `xattr -c /Applications/Placcon\ Launcher.app` - Telepítés után futtatnadó parancs
 - `windows-Placcon-Launcher-Setup-{verzió}.exe` - Windows Setup
 - `linux-placcon-launcher-{verzió}-amd64.deb` - Linux AMD64
 - `linux-placcon-launcher-{verzió}-arm64.deb` - Linux ARM64
