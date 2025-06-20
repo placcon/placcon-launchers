@@ -1,6 +1,6 @@
 {
   "name": "placcon-launcher",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Placcon Restaurant System Desktop Launcher",
   "main": "main.js",
   "scripts": {
@@ -12,7 +12,8 @@
     "build:linux": "electron-builder --linux",
     "build:all": "electron-builder -mwl",
     "dist": "npm run build:all",
-    "release": "scripts/create-release.sh"
+    "release": "scripts/create-release.sh",
+    "check-version": "scripts/check-version.sh"
   },
   "keywords": [
     "electron",

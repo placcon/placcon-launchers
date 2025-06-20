@@ -49,11 +49,17 @@ git tag v1.5.0
 git push origin v1.5.0
 ```
 
+### Verziókezelés
+- A tag verziója automatikusan szinkronizálódik a `package.json` verziójával
+- A workflow frissíti a package.json-t a tag verziójára
+- Ez biztosítja, hogy a build-elt fájlok verziója egyezzen a release tag-gel
+
 ### Automatikus Release (release.yml)
 A GitHub Actions automatikusan:
-1. Build-eli az alkalmazást minden platformra
-2. Létrehozza a release-t a megfelelő fájlokkal
-3. Generálja a release notes-t
+1. Frissíti a package.json verzióját a tag-nek megfelelően
+2. Build-eli az alkalmazást minden platformra
+3. Létrehozza a release-t a megfelelő fájlokkal
+4. Generálja a release notes-t
 
 ### Manuális Release (prepare-release.yml)
 Ha az automatikus release nem működik:
