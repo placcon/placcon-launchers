@@ -103,9 +103,15 @@ jobs:
       run: npm run build:${{ matrix.platform }}
 
     - name: List build outputs
+      shell: bash
       run: |
         echo "Build outputs for ${{ matrix.platform }}:"
-        find ./dist -type f | sort
+        if [ -d "./dist" ]; then
+          ls -la ./dist/ || echo "Could not list dist directory"
+          find ./dist -type f 2>/dev/null | head -20 || echo "Could not find files in dist directory"
+        else
+          echo "dist directory not found"
+        fi
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
