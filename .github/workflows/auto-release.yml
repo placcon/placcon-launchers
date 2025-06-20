@@ -15,7 +15,7 @@ permissions:
   packages: write
 
 jobs:
-  prepare-release:
+  check-and-release:
     runs-on: ubuntu-latest
     
     steps:
@@ -28,7 +28,7 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: Get version
+    - name: Get version from package.json
       id: get_version
       run: |
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -36,7 +36,7 @@ jobs:
         else
           VERSION=$(node -p "require('./package.json').version")
         fi
-        echo "Version: $VERSION"
+        echo "Package.json version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Check if release already exists
@@ -51,29 +51,13 @@ jobs:
           exit 1
         else
           echo "✅ No existing release found for tag $TAG"
+          echo "Proceeding with build and release..."
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create and push tag
-      run: |
-        VERSION=${{ steps.get_version.outputs.version }}
-        TAG="v$VERSION"
-        
-        # Configure git
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        # Create tag
-        git tag "$TAG"
-        
-        # Push tag
-        git push origin "$TAG"
-        
-        echo "Created and pushed tag: $TAG"
-
   build-all:
-    needs: prepare-release
+    needs: check-and-release
     strategy:
       matrix:
         platform: [mac, win, linux]
@@ -103,7 +87,7 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Get version
+    - name: Get version from package.json
       id: get_version
       run: |
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -137,7 +121,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Get version
+    - name: Get version from package.json
       id: get_version
       run: |
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then

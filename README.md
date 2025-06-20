@@ -42,26 +42,19 @@ npm run build:linux
 
 ## Release folyamat
 
-### Automatikus Release (ajánlott)
-A GitHub Actions automatikusan kezeli a teljes release folyamatot:
+### Automatikus Release
 
-#### 1. Verzió frissítése
-```bash
-# Frissítsd a package.json verzióját
-npm version 1.8.0 --no-git-tag-version
-git add package.json
-git commit -m "Update version to 1.8.0"
-git push
-```
+A projekt egy egyszerűsített automatizált release workflow-t használ:
 
-#### 2. Automatikus release létrehozás
-A `auto-release.yml` workflow automatikusan:
-1. Kiolvassa a package.json verzióját
-2. Ellenőrzi, hogy létezik-e már a release
-3. Létrehozza és push-olja a tag-et
-4. Build-eli az alkalmazást minden platformra
-5. Átnevezi a fájlokat platform prefix-ekkel
-6. Létrehozza a release-t
+#### 1. Verzió ellenőrzés
+- A workflow kiolvassa a `package.json` verzióját
+- Ellenőrzi, hogy létezik-e már release ezzel a verzióval
+
+#### 2. Build és Release
+Ha nincs még release a verzióval:
+1. Build-eli az alkalmazást minden platformra
+2. Létrehozza a release-t a package.json verzió alapján
+3. Feltölti az artifact fájlokat
 
 #### 3. Manuális trigger
 Vagy használhatod a GitHub Actions manuális trigger-t:
@@ -71,16 +64,17 @@ Vagy használhatod a GitHub Actions manuális trigger-t:
 4. Add meg a verziót (pl. 1.8.0)
 
 ### Verziókezelés
-- A tag verziója automatikusan szinkronizálódik a `package.json` verziójával
-- A workflow frissíti a package.json-t a tag verziójára
-- Ez biztosítja, hogy a build-elt fájlok verziója egyezzen a release tag-gel
-- Ha már létezik a release, a workflow hibát ad
+- **Manuális kontroll**: Te kezeled a verziót a `package.json`-ben
+- **Nincs auto-increment**: A workflow nem módosítja a verziót
+- **Konzisztens elnevezés**: A release tag-ek `v{verzió}` formátumot használnak (pl. `v1.8.0`)
 
-### Tag alapú Release (régi módszer)
-```bash
-git tag v1.8.0
-git push origin v1.8.0
-```
+### Release fájlok
+
+A workflow platform-specifikus fájlokat hoz létre:
+- `osx-Placcon-Launcher-{verzió}-arm64.dmg` - macOS ARM64
+- `windows-Placcon-Launcher-Setup-{verzió}.exe` - Windows Setup
+- `linux-placcon-launcher-{verzió}-amd64.deb` - Linux AMD64
+- `linux-placcon-launcher-{verzió}-arm64.deb` - Linux ARM64
 
 ## Build konfiguráció
 
@@ -97,14 +91,41 @@ Az alkalmazás Electron Builder segítségével van konfigurálva:
 - Web security engedélyezve
 - Külső linkek automatikusan megnyílnak a böngészőben
 
+## Projekt struktúra
+
+```
+placcon-launchers/
+├── assets/           # Alkalmazás ikonok
+├── .github/workflows/
+│   └── auto-release.yml  # Automatizált release workflow
+├── main.js          # Fő Electron process
+├── preload.js       # Preload script
+├── renderer.js      # Renderer process
+├── index.html       # Fő ablak HTML
+└── package.json     # Projekt konfiguráció
+```
+
+## Hibaelhárítás
+
+### Release problémák
+
+- **Verzió már létezik**: Frissítsd a package.json-t új verzióra
+- **Build hibák**: Ellenőrizd a platform-specifikus build követelményeket
+- **Hiányzó artifact-ok**: Ellenőrizd a build kimeneteket a dist/ mappában
+
+### Gyakori parancsok
+
+```bash
+# Aktuális verzió ellenőrzése
+node -p "require('./package.json').version"
+
+# Build kimenetek listázása
+find ./dist -type f
+
+# Létező release-ek ellenőrzése
+gh release list
+```
+
 ## Licenc
 
 MIT License 
-
-### Version Management
-
-The project uses automatic version incrementing:
-- **Starting version**: v1.4.0 (current latest)
-- **Auto-increment**: Minor version increases with each build (1.4.0 → 1.5.0 → 1.6.0...)
-- **Manual tags**: Can still use manual tags for specific releases
-- **Package.json**: Automatically updated with new version numbers 
