@@ -89,6 +89,7 @@ jobs:
 
     - name: Get version from package.json
       id: get_version
+      shell: bash
       run: |
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
           VERSION="${{ github.event.inputs.version }}"
@@ -123,6 +124,7 @@ jobs:
 
     - name: Get version from package.json
       id: get_version
+      shell: bash
       run: |
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
           VERSION="${{ github.event.inputs.version }}"
@@ -139,6 +141,7 @@ jobs:
 
     - name: Find and rename files
       id: renamed_files
+      shell: bash
       run: |
         VERSION=${{ steps.get_version.outputs.version }}
         echo "Processing files for version: $VERSION"
@@ -186,6 +189,7 @@ jobs:
         echo "files=$RENAMED_FILES" >> $GITHUB_OUTPUT
 
     - name: Create Release
+      shell: bash
       run: |
         VERSION=${{ steps.get_version.outputs.version }}
         TAG="v$VERSION"
