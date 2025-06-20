@@ -40,6 +40,27 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Get version from package.json
+      id: get_version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "Package.json version: $VERSION"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Update package.json version to match tag
+      run: |
+        # Extract version from tag (remove 'v' prefix)
+        TAG_VERSION=${GITHUB_REF#refs/tags/}
+        VERSION=${TAG_VERSION#v}
+        echo "Updating package.json version to: $VERSION"
+        
+        # Update package.json version
+        npm version $VERSION --no-git-tag-version
+        
+        # Show the updated version
+        echo "Updated package.json version:"
+        cat package.json | grep '"version"'
+
     - name: Build for ${{ matrix.platform }}
       run: npm run build:${{ matrix.platform }}
 
@@ -63,19 +84,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Update package.json version to match tag
+    - name: Get version from package.json
+      id: get_version
       run: |
-        # Extract version from tag (remove 'v' prefix)
-        TAG_VERSION=${GITHUB_REF#refs/tags/}
-        VERSION=${TAG_VERSION#v}
-        echo "Updating package.json version to: $VERSION"
-        
-        # Update package.json version
-        npm version $VERSION --no-git-tag-version
-        
-        # Show the updated version
-        echo "Updated package.json version:"
-        cat package.json | grep '"version"'
+        VERSION=$(node -p "require('./package.json').version")
+        echo "Package.json version: $VERSION"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Download all artifacts
       uses: actions/download-artifact@v4
@@ -129,9 +143,8 @@ jobs:
       run: |
         echo "Renaming files with platform prefixes..."
         
-        # Get tag version for file naming
-        TAG_VERSION=${GITHUB_REF#refs/tags/}
-        VERSION=${TAG_VERSION#v}
+        # Get version from package.json
+        VERSION=${{ steps.get_version.outputs.version }}
         
         # Rename DMG file (macOS)
         DMG_FILE=$(find artifacts -name "*.dmg" -type f | grep -E "Placcon Launcher-[0-9]+\.[0-9]+\.[0-9]+-arm64" | head -1)
@@ -171,9 +184,8 @@ jobs:
     - name: Update file list with renamed files
       id: renamed_files
       run: |
-        # Get tag version
-        TAG_VERSION=${GITHUB_REF#refs/tags/}
-        VERSION=${TAG_VERSION#v}
+        # Get version from package.json
+        VERSION=${{ steps.get_version.outputs.version }}
         
         # Find renamed files
         RENAMED_FILES=""
@@ -199,33 +211,38 @@ jobs:
         echo "Renamed files for release: $RENAMED_FILES"
         echo "files=$RENAMED_FILES" >> $GITHUB_OUTPUT
 
-    - name: Clean existing release assets
+    - name: Check if release already exists
+      id: check_release
       run: |
         # Get tag name
         TAG_NAME=${GITHUB_REF#refs/tags/}
-        echo "Cleaning existing assets for tag: $TAG_NAME"
+        echo "Checking if release for tag $TAG_NAME already exists..."
         
-        # Check if release exists and delete existing assets
+        # Check if release exists
         if gh release view "$TAG_NAME" >/dev/null 2>&1; then
-          echo "Release exists, cleaning assets..."
-          gh release delete-asset "$TAG_NAME" --yes || true
+          echo "❌ Release for tag $TAG_NAME already exists!"
+          echo "Please use a different version or delete the existing release first."
+          echo "exists=true" >> $GITHUB_OUTPUT
+          exit 1
         else
-          echo "Release does not exist yet"
+          echo "✅ No existing release found for tag $TAG_NAME"
+          echo "exists=false" >> $GITHUB_OUTPUT
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      continue-on-error: true
 
     - name: Create Release with GitHub CLI
+      if: steps.check_release.outputs.exists != 'true'
       run: |
-        # Get tag name
+        # Get tag name and version
         TAG_NAME=${GITHUB_REF#refs/tags/}
-        echo "Creating release for tag: $TAG_NAME"
+        VERSION=${{ steps.get_version.outputs.version }}
+        echo "Creating release for tag: $TAG_NAME (version: $VERSION)"
         
         # Create release with files
         gh release create "$TAG_NAME" \
-          --title "Release $TAG_NAME" \
-          --notes "Placcon Launcher $TAG_NAME - Automated release with macOS ARM64, Windows Setup, and Linux DEB packages" \
+          --title "Placcon Launcher $VERSION" \
+          --notes "Placcon Launcher $VERSION - Automated release with macOS ARM64, Windows Setup, and Linux DEB packages" \
           --draft=false \
           --prerelease=false \
           ${{ steps.renamed_files.outputs.files }}
@@ -243,7 +260,7 @@ jobs:
         if [ ! -z "${{ steps.renamed_files.outputs.files }}" ]; then
           echo "**Release files:**" >> $GITHUB_STEP_SUMMARY
           for file in ${{ steps.renamed_files.outputs.files }}; do
-            echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`$(basename "$file")\`" >> $GITHUB_STEP_SUMMARY
           done
         else
           echo "**No release files found!**" >> $GITHUB_STEP_SUMMARY

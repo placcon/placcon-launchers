@@ -207,6 +207,15 @@ jobs:
         echo "**Version:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
+        # Check if release already exists
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+          echo "❌ **Release for tag $TAG_NAME already exists!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please use a different version or delete the existing release first." >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+        
         if [ ! -z "${{ steps.renamed_files.outputs.files }}" ]; then
           echo "**Release files prepared:**" >> $GITHUB_STEP_SUMMARY
           for file in ${{ steps.renamed_files.outputs.files }}; do
@@ -225,4 +234,6 @@ jobs:
         echo "1. Go to the Releases page" >> $GITHUB_STEP_SUMMARY
         echo "2. Click 'Draft a new release'" >> $GITHUB_STEP_SUMMARY
         echo "3. Use tag: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-        echo "4. Upload the files listed above" >> $GITHUB_STEP_SUMMARY 
+        echo "4. Upload the files listed above" >> $GITHUB_STEP_SUMMARY
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

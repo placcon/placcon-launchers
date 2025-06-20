@@ -12,26 +12,32 @@ Ez a dokumentum leírja, hogyan működik a verziókezelés a Placcon Launcher p
 
 ### 1. Tag létrehozása
 ```bash
+# Ellenőrizd, hogy létezik-e már a release
+npm run check-release v1.8.0
+
 # Hozz létre egy új tag-et
-git tag v1.5.0
+git tag v1.8.0
 
 # Push-old a tag-et
-git push origin v1.5.0
+git push origin v1.8.0
 ```
 
 ### 2. Automatikus verzió frissítés
 A GitHub Actions workflow automatikusan:
-1. Kiolvassa a tag verzióját
-2. Frissíti a `package.json` verzióját
-3. Build-eli az alkalmazást a helyes verzióval
-4. Létrehozza a release-t
+1. Ellenőrzi, hogy létezik-e már a release
+2. Kiolvassa a tag verzióját
+3. Frissíti a `package.json` verzióját
+4. Build-eli az alkalmazást a helyes verzióval
+5. Létrehozza a release-t
 
-### 3. Verzió szinkronizáció
+### 3. Release létezés ellenőrzése
 ```bash
-# A workflow automatikusan futtatja:
-TAG_VERSION=${GITHUB_REF#refs/tags/}
-VERSION=${TAG_VERSION#v}
-npm version $VERSION --no-git-tag-version
+# A workflow automatikusan ellenőrzi:
+gh release view "$TAG_NAME"
+if [ $? -eq 0 ]; then
+  echo "❌ Release already exists!"
+  exit 1
+fi
 ```
 
 ## Verzió konvenciók
@@ -77,6 +83,29 @@ A workflow automatikusan kezeli a verzió szinkronizációt, de ha problémák v
 1. **Ellenőrizd a workflow logokat**
 2. **Nézd meg a "Update package.json version" lépést**
 3. **Ellenőrizd, hogy a tag formátuma helyes-e**
+
+### Automatikus release létrehozás
+A workflow automatikusan kezeli a release létrehozást, de ha problémák vannak:
+
+1. **Ellenőrizd a workflow logokat**
+2. **Nézd meg a "Check if release already exists" lépést**
+3. **Ellenőrizd, hogy a tag formátuma helyes-e**
+4. **Használd a check-release script-et: `npm run check-release v1.8.0`**
+
+### Release már létezik
+Ha a release már létezik:
+
+```bash
+# Ellenőrizd a meglévő release-t
+npm run check-release v1.8.0
+
+# Töröld a meglévő release-t (ha szükséges)
+gh release delete v1.8.0
+
+# Vagy használj másik verziót
+git tag v1.8.1
+git push origin v1.8.1
+```
 
 ## Példák
 
