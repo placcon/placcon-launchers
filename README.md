@@ -49,10 +49,24 @@ git tag v1.5.0
 git push origin v1.5.0
 ```
 
+### Automatikus Release (release.yml)
 A GitHub Actions automatikusan:
 1. Build-eli az alkalmazást minden platformra
 2. Létrehozza a release-t a megfelelő fájlokkal
 3. Generálja a release notes-t
+
+### Manuális Release (prepare-release.yml)
+Ha az automatikus release nem működik:
+1. Build-eli az alkalmazást minden platformra
+2. Előkészíti a release fájlokat
+3. Megjeleníti a fájlok listáját a workflow summary-ban
+4. Manuálisan létrehozhatod a release-t a GitHub webes felületén
+
+### Hibaelhárítás
+Ha 403-as hibát kapsz a release létrehozásakor:
+1. Ellenőrizd a repository jogosultságokat
+2. Használd a `prepare-release.yml` workflow-t
+3. Manuálisan hozd létre a release-t a GitHub webes felületén
 
 ## Build konfiguráció
 

@@ -1,4 +1,4 @@
-name: Create Release
+name: Prepare Release Files
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
   packages: write
 
 jobs:
@@ -53,9 +53,9 @@ jobs:
       with:
         name: placcon-launcher-${{ matrix.platform }}
         path: dist/
-        retention-days: 0
+        retention-days: 30
 
-  create-release:
+  prepare-release:
     needs: build-all
     runs-on: ubuntu-latest
     
@@ -103,56 +103,30 @@ jobs:
         echo "Release files: $RELEASE_FILES"
         echo "files=$RELEASE_FILES" >> $GITHUB_OUTPUT
 
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: ${{ steps.find_files.outputs.files }}
-        generate_release_notes: true
-        draft: false
-        prerelease: false
-        token: ${{ secrets.GITHUB_TOKEN }}
-      continue-on-error: true
-
-    - name: Create Release with GitHub CLI (fallback)
-      if: failure()
+    - name: Create release summary
       run: |
-        # Install GitHub CLI
-        type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
-        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-        && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-        && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-        && sudo apt update \
-        && sudo apt install gh -y
-        
-        # Get tag name
-        TAG_NAME=${GITHUB_REF#refs/tags/}
-        
-        # Create release
-        gh release create $TAG_NAME \
-          --title "Release $TAG_NAME" \
-          --notes "Automated release for $TAG_NAME" \
-          --draft=false \
-          --prerelease=false \
-          ${{ steps.find_files.outputs.files }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: List files for manual release
-      if: always()
-      run: |
-        echo "## Release Files Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## Release Files Ready" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "The following files were found for release:" >> $GITHUB_STEP_SUMMARY
+        echo "**Tag:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         if [ ! -z "${{ steps.find_files.outputs.files }}" ]; then
-          echo "**Release files:**" >> $GITHUB_STEP_SUMMARY
+          echo "**Release files prepared:**" >> $GITHUB_STEP_SUMMARY
           for file in ${{ steps.find_files.outputs.files }}; do
             echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
           done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All files are ready for manual release creation." >> $GITHUB_STEP_SUMMARY
         else
-          echo "**No release files found!**" >> $GITHUB_STEP_SUMMARY
+          echo "❌ **No release files found!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the build logs for errors." >> $GITHUB_STEP_SUMMARY
         fi
         
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "If automatic release creation failed, you can manually create a release with these files." >> $GITHUB_STEP_SUMMARY 
+        echo "**Next steps:**" >> $GITHUB_STEP_SUMMARY
+        echo "1. Go to the Releases page" >> $GITHUB_STEP_SUMMARY
+        echo "2. Click 'Draft a new release'" >> $GITHUB_STEP_SUMMARY
+        echo "3. Use tag: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "4. Upload the files listed above" >> $GITHUB_STEP_SUMMARY 

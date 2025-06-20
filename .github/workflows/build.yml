@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ electron-v2 ]
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
     strategy:
@@ -101,5 +105,4 @@ jobs:
         generate_release_notes: true
         draft: false
         prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        token: ${{ secrets.GITHUB_TOKEN }} 
