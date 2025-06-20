@@ -1,161 +1,75 @@
 # Placcon Launcher
 
-A desktop application launcher for the Placcon restaurant management system.
+A Placcon éttermi rendszer asztali alkalmazása, amely lehetővé teszi a Placcon webes felület elérését egy dedikált alkalmazáson keresztül.
 
-## Features
+## Funkciók
 
-- **Cross-platform**: Windows (x64, ARM64), macOS (ARM64, x64), Linux (x64, ARM64)
-- **Persistent storage**: Saves login credentials, cookies, and local storage data
-- **Clean interface**: No browser bars, bookmarks, or search functionality
-- **Secure**: Isolated from system, prevents external navigation
-- **Native experience**: Looks and feels like a native desktop application
+- **Biztonságos webes felület**: A Placcon éttermi rendszer elérése
+- **Platform független**: Windows, macOS és Linux támogatás
+- **Automatikus frissítések**: GitHub Actions segítségével
+- **Modern felhasználói felület**: Reszponzív és felhasználóbarát design
 
-## Installation
+## Fejlesztés
 
-### Prerequisites
+### Előfeltételek
 
-- Node.js 18+ 
-- npm or yarn
+- Node.js 18+
+- npm
 
-### Development Setup
+### Telepítés
 
-1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd placcon-launchers
+npm ci
 ```
 
-2. Install dependencies:
+### Fejlesztői mód
+
 ```bash
-npm install
+npm run dev
 ```
 
-3. Start the development version:
+### Build
+
 ```bash
-npm start
-```
-
-## Building
-
-### Local Build
-
-**Build for all platforms:**
-```bash
+# Minden platform
 npm run build:all
-```
 
-**Build for specific platforms:**
-
-Windows:
-```bash
-npm run build:win
-```
-
-macOS:
-```bash
+# Vagy platform specifikus
 npm run build:mac
-```
-
-Linux:
-```bash
+npm run build:win
 npm run build:linux
 ```
 
-### Automated Builds (GitHub Actions)
+## Release folyamat
 
-The project includes GitHub Actions workflows for automated builds:
+A release automatikusan létrejön, amikor egy új tag-et push-olunk a repository-ba:
 
-1. **Build Workflow** (`build.yml`):
-   - Single workflow that builds for all platforms in parallel
-   - macOS (DMG), Windows (EXE), Linux (DEB)
-   - Triggers on push/PR to `electron-v2` branch
-   - Uploads installers as artifacts (kept forever)
-   - Automatically creates release with incremented version
-
-2. **Manual Release Workflow** (`release.yml`):
-   - Creates release when pushing tags (e.g., `v1.0.0`)
-   - Includes all platform installers
-
-### Build Outputs
-
-The built applications will be available in the `dist` folder:
-
-- **Windows**: `.exe` installer (x64, ARM64)
-- **macOS**: `.dmg` files (ARM64, x64)
-- **Linux**: `.deb` packages (x64, ARM64)
-
-## Configuration
-
-The application loads `https://test.core.placcon.com` by default. To change the target URL, modify the `mainWindow.loadURL()` call in `main.js`.
-
-## Security Features
-
-- Context isolation enabled
-- Node.js integration disabled
-- Web security enabled
-- External navigation blocked
-- File protocol access prevented
-
-## Development
-
-### Project Structure
-
-```
-placcon-launchers/
-├── main.js          # Main Electron process
-├── preload.js       # Preload script for security
-├── renderer.js      # Renderer process script
-├── index.html       # Loading page
-├── package.json     # Project configuration
-├── assets/          # Application icons
-├── .github/workflows/ # GitHub Actions workflows
-└── dist/           # Build outputs
-```
-
-### Available Scripts
-
-- `npm start` - Start development version
-- `npm run dev` - Start with development flags
-- `npm run build` - Build for current platform
-- `npm run build:win` - Build for Windows
-- `npm run build:mac` - Build for macOS
-- `npm run build:linux` - Build for Linux
-- `npm run build:all` - Build for all platforms
-
-## GitHub Actions
-
-### Manual Build
-Push to `electron-v2` branch to trigger automated builds.
-
-### Create Release
-1. Create and push a tag:
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.5.0
+git push origin v1.5.0
 ```
 
-2. GitHub Actions will automatically:
-   - Build for all platforms
-   - Create a release with installers
-   - Generate release notes
+A GitHub Actions automatikusan:
+1. Build-eli az alkalmazást minden platformra
+2. Létrehozza a release-t a megfelelő fájlokkal
+3. Generálja a release notes-t
 
-### Accessing Builds
-- **Artifacts**: Available in GitHub Actions tab for each workflow run
-- **Releases**: Available in Releases tab with all platform installers
+## Build konfiguráció
 
-## Troubleshooting
+Az alkalmazás Electron Builder segítségével van konfigurálva:
 
-### Common Issues
+- **Windows**: NSIS installer (.exe)
+- **macOS**: DMG installer (.dmg)  
+- **Linux**: DEB package (.deb)
 
-1. **Build fails on macOS**: Ensure you have Xcode Command Line Tools installed
-2. **Windows build issues**: Install Visual Studio Build Tools
-3. **Linux build issues**: Install required packages: `sudo apt-get install rpm`
+## Biztonság
 
-### Logs
+- Context isolation engedélyezve
+- Node integration letiltva
+- Web security engedélyezve
+- Külső linkek automatikusan megnyílnak a böngészőben
 
-Check the console output for any error messages during development or build.
-
-## License
+## Licenc
 
 MIT License 
 

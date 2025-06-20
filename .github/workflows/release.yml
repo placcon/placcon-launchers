@@ -38,17 +38,11 @@ jobs:
 
     - name: Build for ${{ matrix.platform }}
       run: npm run build:${{ matrix.platform }}
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
-    - name: Clean and prepare artifacts
+    - name: List build outputs
       run: |
-        if [ "$RUNNER_OS" = "Windows" ]; then
-          Get-ChildItem -Path ./dist -Recurse -File | Where-Object { $_.Extension -ne '.${{ matrix.extension }}' } | Remove-Item -Force
-        else
-          find ./dist -type f ! -name '*.${{ matrix.extension }}' -delete
-          find ./dist -type d -empty -delete
-        fi
+        echo "Build outputs for ${{ matrix.platform }}:"
+        find ./dist -type f | sort
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -70,13 +64,45 @@ jobs:
       with:
         path: artifacts
 
+    - name: Find and list release files
+      id: find_files
+      run: |
+        echo "Artifacts directory structure:"
+        find artifacts -type f | sort
+        echo ""
+        echo "Looking for release files:"
+        
+        # Find DMG files
+        DMG_FILES=$(find artifacts -name "*.dmg" -type f)
+        echo "DMG files found: $DMG_FILES"
+        
+        # Find EXE files  
+        EXE_FILES=$(find artifacts -name "*.exe" -type f)
+        echo "EXE files found: $EXE_FILES"
+        
+        # Find DEB files
+        DEB_FILES=$(find artifacts -name "*.deb" -type f)
+        echo "DEB files found: $DEB_FILES"
+        
+        # Create file list for release
+        RELEASE_FILES=""
+        if [ ! -z "$DMG_FILES" ]; then
+          RELEASE_FILES="$RELEASE_FILES $DMG_FILES"
+        fi
+        if [ ! -z "$EXE_FILES" ]; then
+          RELEASE_FILES="$RELEASE_FILES $EXE_FILES"
+        fi
+        if [ ! -z "$DEB_FILES" ]; then
+          RELEASE_FILES="$RELEASE_FILES $DEB_FILES"
+        fi
+        
+        echo "Release files: $RELEASE_FILES"
+        echo "files=$RELEASE_FILES" >> $GITHUB_OUTPUT
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: |
-          artifacts/placcon-launcher-mac/dist/*.dmg
-          artifacts/placcon-launcher-win/dist/*.exe
-          artifacts/placcon-launcher-linux/dist/*.deb
+        files: ${{ steps.find_files.outputs.files }}
         generate_release_notes: true
         draft: false
         prerelease: false
