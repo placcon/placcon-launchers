@@ -1,6 +1,6 @@
 {
   "name": "placcon-launcher",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "Placcon Restaurant System Desktop Launcher",
   "main": "main.js",
   "scripts": {
@@ -46,7 +46,10 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "icon": "assets/icon.ico"
@@ -55,7 +58,10 @@
       "target": [
         {
           "target": "dmg",
-          "arch": ["arm64", "x64"]
+          "arch": [
+            "arm64",
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon.icns",
@@ -66,7 +72,10 @@
       "target": [
         {
           "target": "deb",
-          "arch": ["x64", "arm64"]
+          "arch": [
+            "x64",
+            "arm64"
+          ]
         }
       ],
       "icon": "assets/icon.png",
@@ -78,5 +87,10 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     }
+  },
+  "dependencies": {
+    "@serialport/list": "^13.0.0",
+    "path": "^0.12.7",
+    "serialport": "^13.0.0"
   }
-} 
+}
