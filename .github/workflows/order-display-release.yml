@@ -178,21 +178,6 @@ jobs:
           echo "Renamed EXE: $NEW_EXE_NAME"
         fi
         
-        DEB_FILES=$(find artifacts -name "*.deb" -type f | grep -E "placcon-order-display_[0-9]+\.[0-9]+\.[0-9]+-order" | sort -u)
-        for DEB_FILE in $DEB_FILES; do
-          if [[ "$DEB_FILE" == *"amd64"* ]]; then
-            NEW_DEB_NAME="linux-placcon-order-display-$VERSION-amd64.deb"
-          elif [[ "$DEB_FILE" == *"arm64"* ]]; then
-            NEW_DEB_NAME="linux-placcon-order-display-$VERSION-arm64.deb"
-          else
-            NEW_DEB_NAME="linux-$(basename "$DEB_FILE")"
-          fi
-          NEW_DEB_PATH=$(dirname "$DEB_FILE")/$NEW_DEB_NAME
-          mv "$DEB_FILE" "$NEW_DEB_PATH"
-          RENAMED_FILES="$RENAMED_FILES $NEW_DEB_PATH"
-          echo "Renamed DEB: $NEW_DEB_NAME"
-        done
-        
         echo "Final files: $RENAMED_FILES"
         echo "files=$RENAMED_FILES" >> $GITHUB_OUTPUT
 

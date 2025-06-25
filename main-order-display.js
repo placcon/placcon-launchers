@@ -252,18 +252,17 @@ function createWindow() {
   // Handle navigation to external sites
   mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
-    if (parsedUrl.hostname !== 'core.placcon.com') {
+    if (!parsedUrl.hostname.endsWith('core.placcon.com') && parsedUrl.hostname !== 'display.core.placcon.com') {
       event.preventDefault();
-      // Optionally open in default browser
       require('electron').shell.openExternal(navigationUrl);
     }
   });
 
   // Handle new window requests
   mainWindow.webContents.on('new-window', (event, navigationUrl) => {
-    event.preventDefault();
     const parsedUrl = new URL(navigationUrl);
-    if (parsedUrl.hostname !== 'core.placcon.com') {
+    if (!parsedUrl.hostname.endsWith('core.placcon.com') && parsedUrl.hostname !== 'display.core.placcon.com') {
+      event.preventDefault();
       require('electron').shell.openExternal(navigationUrl);
     }
   });
