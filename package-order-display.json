@@ -1,8 +1,8 @@
 {
   "name": "placcon-order-display",
-  "version": "1.10.0-order",
+  "version": "1.11.0-order",
   "description": "Placcon Order Display System",
-  "main": "main-order-display.js",
+  "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
@@ -35,8 +35,8 @@
       "output": "dist"
     },
     "files": [
-      "main-order-display.js",
-      "preload-order-display.js",
+      "main.js",
+      "preload.js",
       "assets/**/*"
     ],
     "publish": null,
