@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Placcon Launcher Version Check Script
+# Placcon Order Display Version Check Script
 # This script checks if the package.json version matches the git tag
 
 set -e
@@ -11,7 +11,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}Placcon Launcher Version Check${NC}"
+echo -e "${GREEN}Placcon Order Display Version Check${NC}"
 echo "=================================="
 
 # Get package.json version
@@ -51,7 +51,12 @@ else
     echo "Current branch is not on a tag."
     echo ""
     echo "To create a release:"
-    echo "1. Create a tag: git tag v$PACKAGE_VERSION"
-    echo "2. Push the tag: git push origin v$PACKAGE_VERSION"
+    if [[ "$PACKAGE_VERSION" == *"-order" ]]; then
+        echo "1. Create an order display tag: git tag v$PACKAGE_VERSION"
+        echo "2. Push the tag: git push origin v$PACKAGE_VERSION"
+    else
+        echo "1. Create a regular tag: git tag v$PACKAGE_VERSION"
+        echo "2. Push the tag: git push origin v$PACKAGE_VERSION"
+    fi
     exit 0
 fi 

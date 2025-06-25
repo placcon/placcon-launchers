@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Placcon Launcher Release Script
+# Placcon Order Display Release Script
 # This script helps create a release manually
 
 set -e
@@ -11,14 +11,14 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}Placcon Launcher Release Script${NC}"
+echo -e "${GREEN}Placcon Order Display Release Script${NC}"
 echo "=================================="
 
 # Check if tag is provided
 if [ -z "$1" ]; then
     echo -e "${RED}Error: Please provide a tag name${NC}"
     echo "Usage: $0 <tag>"
-    echo "Example: $0 v1.5.0"
+    echo "Example: $0 v1.5.0-order"
     exit 1
 fi
 
@@ -31,9 +31,9 @@ npm run build:all
 
 # Find release files
 echo -e "${GREEN}Finding release files...${NC}"
-DMG_FILES=$(find dist -name "*.dmg" -type f | grep -E "Placcon Launcher-[0-9]+\.[0-9]+\.[0-9]+-arm64" | sort -u)
-EXE_FILES=$(find dist -name "*.exe" -type f | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+\.exe$" | sort -u)
-DEB_FILES=$(find dist -name "*.deb" -type f | grep -E "placcon-launcher_[0-9]+\.[0-9]+\.[0-9]+" | sort -u)
+DMG_FILES=$(find dist -name "*.dmg" -type f | grep -E "placcon order display-[0-9]+\.[0-9]+\.[0-9]+-order-arm64" | sort -u)
+EXE_FILES=$(find dist -name "*.exe" -type f | grep -E "placcon order display Setup [0-9]+\.[0-9]+\.[0-9]+-order\.exe$" | sort -u)
+DEB_FILES=$(find dist -name "*.deb" -type f | grep -E "placcon-order-display_[0-9]+\.[0-9]+\.[0-9]+-order" | sort -u)
 
 echo -e "${YELLOW}Found files:${NC}"
 if [ ! -z "$DMG_FILES" ]; then
@@ -60,7 +60,7 @@ VERSION=$(node -p "require('./package.json').version")
 # Rename DMG file (macOS)
 DMG_FILE=$(echo "$DMG_FILES" | head -1)
 if [ ! -z "$DMG_FILE" ]; then
-    NEW_DMG_NAME="osx-Placcon-Launcher-$VERSION-arm64.dmg"
+    NEW_DMG_NAME="osx-placcon-order-display-$VERSION-arm64.dmg"
     NEW_DMG_PATH=$(dirname "$DMG_FILE")/$NEW_DMG_NAME
     mv "$DMG_FILE" "$NEW_DMG_PATH"
     echo "Renamed DMG: $NEW_DMG_NAME"
@@ -69,7 +69,7 @@ fi
 # Rename EXE file (Windows)
 EXE_FILE=$(echo "$EXE_FILES" | head -1)
 if [ ! -z "$EXE_FILE" ]; then
-    NEW_EXE_NAME="windows-Placcon-Launcher-Setup-$VERSION.exe"
+    NEW_EXE_NAME="windows-placcon-order-display-Setup-$VERSION.exe"
     NEW_EXE_PATH=$(dirname "$EXE_FILE")/$NEW_EXE_NAME
     mv "$EXE_FILE" "$NEW_EXE_PATH"
     echo "Renamed EXE: $NEW_EXE_NAME"
@@ -78,9 +78,9 @@ fi
 # Rename DEB files (Linux)
 for DEB_FILE in $DEB_FILES; do
     if [[ "$DEB_FILE" == *"amd64"* ]]; then
-        NEW_DEB_NAME="linux-placcon-launcher-$VERSION-amd64.deb"
+        NEW_DEB_NAME="linux-placcon-order-display-$VERSION-amd64.deb"
     elif [[ "$DEB_FILE" == *"arm64"* ]]; then
-        NEW_DEB_NAME="linux-placcon-launcher-$VERSION-arm64.deb"
+        NEW_DEB_NAME="linux-placcon-order-display-$VERSION-arm64.deb"
     else
         NEW_DEB_NAME="linux-$(basename "$DEB_FILE")"
     fi
@@ -105,9 +105,9 @@ fi
 # Add renamed DEB files (both architectures)
 for DEB_FILE in $DEB_FILES; do
     if [[ "$DEB_FILE" == *"amd64"* ]]; then
-        FINAL_FILES="$FINAL_FILES $(dirname "$DEB_FILE")/linux-placcon-launcher-$VERSION-amd64.deb"
+        FINAL_FILES="$FINAL_FILES $(dirname "$DEB_FILE")/linux-placcon-order-display-$VERSION-amd64.deb"
     elif [[ "$DEB_FILE" == *"arm64"* ]]; then
-        FINAL_FILES="$FINAL_FILES $(dirname "$DEB_FILE")/linux-placcon-launcher-$VERSION-arm64.deb"
+        FINAL_FILES="$FINAL_FILES $(dirname "$DEB_FILE")/linux-placcon-order-display-$VERSION-arm64.deb"
     fi
 done
 
@@ -121,7 +121,7 @@ if command -v gh &> /dev/null; then
     # Create release
     gh release create $TAG \
         --title "Release $TAG" \
-        --notes "Placcon Launcher $TAG
+        --notes "Placcon Order Display $TAG
 
 ## Changes
 - Automated release

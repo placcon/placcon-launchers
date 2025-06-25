@@ -1,12 +1,12 @@
-name: Auto Release
+name: Order Display Release
 
 on:
   push:
-    branches: [ main, master, electron-v2 ]
+    branches: [ electron-v2-order-display ]
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., 1.8.0)'
+        description: 'Version to release (e.g., 1.10.0-order)'
         required: true
         type: string
 
@@ -34,7 +34,7 @@ jobs:
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
           VERSION="${{ github.event.inputs.version }}"
         else
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION=$(node -p "require('./package-order-display.json').version")
         fi
         echo "Package.json version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -87,6 +87,12 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Setup order display files
+      run: |
+        echo "Setting up order display configuration..."
+        cp package-order-display.json package.json
+        cp main-order-display.js main.js
+
     - name: Get version from package.json
       id: get_version
       shell: bash
@@ -116,7 +122,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: placcon-launcher-${{ matrix.platform }}
+        name: order-display-${{ matrix.platform }}
         path: dist/
         retention-days: 0
 
@@ -135,7 +141,7 @@ jobs:
         if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
           VERSION="${{ github.event.inputs.version }}"
         else
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION=$(node -p "require('./package-order-display.json').version")
         fi
         echo "Version: $VERSION"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -150,38 +156,36 @@ jobs:
       shell: bash
       run: |
         VERSION=${{ steps.get_version.outputs.version }}
-        echo "Processing files for version: $VERSION"
+        echo "Processing order display files for version: $VERSION"
         
         # Find and rename files
         RENAMED_FILES=""
         
-        # DMG file (macOS ARM64)
-        DMG_FILE=$(find artifacts -name "*.dmg" -type f | grep -E "Placcon Launcher-[0-9]+\.[0-9]+\.[0-9]+-arm64" | head -1)
+        # Order display files
+        DMG_FILE=$(find artifacts -name "*.dmg" -type f | grep -E "placcon order display-[0-9]+\.[0-9]+\.[0-9]+-order-arm64" | head -1)
         if [ ! -z "$DMG_FILE" ]; then
-          NEW_DMG_NAME="osx-Placcon-Launcher-$VERSION-arm64.dmg"
+          NEW_DMG_NAME="osx-placcon-order-display-$VERSION-arm64.dmg"
           NEW_DMG_PATH=$(dirname "$DMG_FILE")/$NEW_DMG_NAME
           mv "$DMG_FILE" "$NEW_DMG_PATH"
           RENAMED_FILES="$RENAMED_FILES $NEW_DMG_PATH"
           echo "Renamed DMG: $NEW_DMG_NAME"
         fi
         
-        # EXE file (Windows Setup)
-        EXE_FILE=$(find artifacts -name "*.exe" -type f | grep -E "Placcon Launcher Setup [0-9]+\.[0-9]+\.[0-9]+\.exe$" | head -1)
+        EXE_FILE=$(find artifacts -name "*.exe" -type f | grep -E "placcon order display Setup [0-9]+\.[0-9]+\.[0-9]+-order\.exe$" | head -1)
         if [ ! -z "$EXE_FILE" ]; then
-          NEW_EXE_NAME="windows-Placcon-Launcher-Setup-$VERSION.exe"
+          NEW_EXE_NAME="windows-placcon-order-display-Setup-$VERSION.exe"
           NEW_EXE_PATH=$(dirname "$EXE_FILE")/$NEW_EXE_NAME
           mv "$EXE_FILE" "$NEW_EXE_PATH"
           RENAMED_FILES="$RENAMED_FILES $NEW_EXE_PATH"
           echo "Renamed EXE: $NEW_EXE_NAME"
         fi
         
-        # DEB files (Linux)
-        DEB_FILES=$(find artifacts -name "*.deb" -type f | grep -E "placcon-launcher_[0-9]+\.[0-9]+\.[0-9]+" | sort -u)
+        DEB_FILES=$(find artifacts -name "*.deb" -type f | grep -E "placcon-order-display_[0-9]+\.[0-9]+\.[0-9]+-order" | sort -u)
         for DEB_FILE in $DEB_FILES; do
           if [[ "$DEB_FILE" == *"amd64"* ]]; then
-            NEW_DEB_NAME="linux-placcon-launcher-$VERSION-amd64.deb"
+            NEW_DEB_NAME="linux-placcon-order-display-$VERSION-amd64.deb"
           elif [[ "$DEB_FILE" == *"arm64"* ]]; then
-            NEW_DEB_NAME="linux-placcon-launcher-$VERSION-arm64.deb"
+            NEW_DEB_NAME="linux-placcon-order-display-$VERSION-arm64.deb"
           else
             NEW_DEB_NAME="linux-$(basename "$DEB_FILE")"
           fi
@@ -200,11 +204,11 @@ jobs:
         VERSION=${{ steps.get_version.outputs.version }}
         TAG="v$VERSION"
         
-        echo "Creating release for tag: $TAG"
+        echo "Creating order display release for tag: $TAG"
         
-        RELEASE_NOTES="Placcon Launcher $VERSION - Automated release with macOS ARM64, Windows Setup, and Linux DEB packages"
+        RELEASE_NOTES="placcon order display $VERSION - Order Display Kiosk Mode - Automated release for order display kiosk mode - Fullscreen kiosk application - Optimized for display devices"
         gh release create "$TAG" \
-          --title "Placcon Launcher $VERSION" \
+          --title "placcon order display $VERSION" \
           --notes "$RELEASE_NOTES" \
           --draft=false \
           --prerelease=false \
