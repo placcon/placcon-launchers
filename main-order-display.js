@@ -78,7 +78,7 @@ function createWindow() {
   });
 
   // Load the Placcon website
-  mainWindow.loadURL('https://test.core.placcon.com');
+  mainWindow.loadURL('https://core.placcon.com');
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
@@ -252,7 +252,7 @@ function createWindow() {
   // Handle navigation to external sites
   mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
-    if (parsedUrl.hostname !== 'test.core.placcon.com') {
+    if (parsedUrl.hostname !== 'core.placcon.com') {
       event.preventDefault();
       // Optionally open in default browser
       require('electron').shell.openExternal(navigationUrl);
@@ -263,7 +263,7 @@ function createWindow() {
   mainWindow.webContents.on('new-window', (event, navigationUrl) => {
     event.preventDefault();
     const parsedUrl = new URL(navigationUrl);
-    if (parsedUrl.hostname !== 'test.core.placcon.com') {
+    if (parsedUrl.hostname !== 'core.placcon.com') {
       require('electron').shell.openExternal(navigationUrl);
     }
   });
