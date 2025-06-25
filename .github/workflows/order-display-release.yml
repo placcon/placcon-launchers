@@ -60,7 +60,7 @@ jobs:
     needs: check-and-release
     strategy:
       matrix:
-        platform: [mac, win, linux]
+        platform: [mac, win]
         include:
           - platform: mac
             runner: macos-latest
@@ -68,9 +68,6 @@ jobs:
           - platform: win
             runner: windows-latest
             extension: exe
-          - platform: linux
-            runner: ubuntu-latest
-            extension: deb
     
     runs-on: ${{ matrix.runner }}
     
