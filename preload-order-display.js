@@ -1,14 +1,26 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+console.log('Preload script starting...');
+
 // Expose display management API to renderer
 contextBridge.exposeInMainWorld('electronAPI', {
   getDisplays: () => ipcRenderer.invoke('get-displays'),
   setDisplay: (displayIndex) => ipcRenderer.invoke('set-display', displayIndex)
 });
 
-console.log('Preload script loaded, electronAPI exposed');
+console.log('electronAPI exposed to window');
 
-// Wait for the page to load completely
+// Test if the API is working
+setTimeout(() => {
+  console.log('Testing electronAPI availability...');
+  if (typeof window !== 'undefined' && window.electronAPI) {
+    console.log('electronAPI is available in window');
+  } else {
+    console.log('electronAPI is NOT available in window');
+  }
+}, 1000);
+
+// Simple display selector injection
 window.addEventListener('load', () => {
   console.log('Page loaded, initializing display selector...');
   
@@ -33,7 +45,7 @@ async function showDisplaySelector() {
   
   // Check if electronAPI is available
   if (!window.electronAPI) {
-    console.error('electronAPI not available');
+    console.error('electronAPI not available in showDisplaySelector');
     alert('Error: electronAPI not available. Please restart the application.');
     return;
   }
@@ -132,7 +144,9 @@ async function showDisplaySelector() {
     applyBtn.addEventListener('click', async () => {
       if (selectedDisplayIndex !== null) {
         try {
+          console.log('Setting display to:', selectedDisplayIndex);
           const result = await window.electronAPI.setDisplay(selectedDisplayIndex);
+          console.log('setDisplay result:', result);
           if (result.success) {
             displayList.innerHTML = '<div style="padding: 40px; text-align: center; color: #28a745;">✓ ' + result.message + '</div>';
             setTimeout(() => {
@@ -142,6 +156,7 @@ async function showDisplaySelector() {
             displayList.innerHTML = '<div style="padding: 20px; color: red;">Error: ' + result.error + '</div>';
           }
         } catch (error) {
+          console.error('Error setting display:', error);
           displayList.innerHTML = '<div style="padding: 20px; color: red;">Error: ' + error.message + '</div>';
         }
       }
@@ -195,7 +210,10 @@ function addDisplaySelectorButton() {
     button.style.background = 'rgba(0, 123, 255, 0.9)';
   });
   
-  button.addEventListener('click', showDisplaySelector);
+  button.addEventListener('click', () => {
+    console.log('Display button clicked');
+    showDisplaySelector();
+  });
   document.body.appendChild(button);
   
   console.log('Display selector button added');

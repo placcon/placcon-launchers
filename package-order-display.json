@@ -2,7 +2,7 @@
   "name": "placcon-order-display",
   "version": "1.10.0-order",
   "description": "Placcon Order Display System",
-  "main": "main.js",
+  "main": "main-order-display.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
@@ -35,10 +35,8 @@
       "output": "dist"
     },
     "files": [
-      "main.js",
-      "preload.js",
-      "renderer.js",
-      "index.html",
+      "main-order-display.js",
+      "preload-order-display.js",
       "assets/**/*"
     ],
     "publish": null,
@@ -89,8 +87,6 @@
     }
   },
   "dependencies": {
-    "@serialport/list": "^13.0.0",
-    "path": "^0.12.7",
-    "serialport": "^13.0.0"
+    "path": "^0.12.7"
   }
 } 

@@ -23,7 +23,7 @@ fi
 # Backup original files
 echo -e "${YELLOW}Backing up original files...${NC}"
 cp package.json package.json.backup
-cp main.js main.js.backup
+cp main.js main.js.backup 2>/dev/null || true
 
 # Switch to order display files
 echo -e "${YELLOW}Switching to order display configuration...${NC}"
@@ -43,7 +43,7 @@ npm run build:all
 # Restore original files
 echo -e "${YELLOW}Restoring original files...${NC}"
 mv package.json.backup package.json
-mv main.js.backup main.js
+mv main.js.backup main.js 2>/dev/null || true
 
 echo -e "${GREEN}Order display build completed successfully!${NC}"
 echo "Build files are in the dist/ directory"
