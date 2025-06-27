@@ -67,25 +67,6 @@
       "icon": "assets/icon.icns",
       "category": "public.app-category.business",
       "identity": null
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "deb",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "icon": "assets/icon.png",
-      "category": "Utility"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
     }
   },
   "dependencies": {

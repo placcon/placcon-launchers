@@ -60,7 +60,7 @@ jobs:
     needs: check-and-release
     strategy:
       matrix:
-        platform: [mac, win, linux]
+        platform: [mac, win]
         include:
           - platform: mac
             runner: macos-latest
@@ -68,10 +68,7 @@ jobs:
           - platform: win
             runner: windows-latest
             extension: exe
-          - platform: linux
-            runner: ubuntu-latest
-            extension: deb
-    
+
     runs-on: ${{ matrix.runner }}
     
     steps:
@@ -175,22 +172,6 @@ jobs:
           echo "Renamed EXE: $NEW_EXE_NAME"
         fi
         
-        # DEB files (Linux)
-        DEB_FILES=$(find artifacts -name "*.deb" -type f | grep -E "placcon-launcher_[0-9]+\.[0-9]+\.[0-9]+" | sort -u)
-        for DEB_FILE in $DEB_FILES; do
-          if [[ "$DEB_FILE" == *"amd64"* ]]; then
-            NEW_DEB_NAME="linux-placcon-launcher-$VERSION-amd64.deb"
-          elif [[ "$DEB_FILE" == *"arm64"* ]]; then
-            NEW_DEB_NAME="linux-placcon-launcher-$VERSION-arm64.deb"
-          else
-            NEW_DEB_NAME="linux-$(basename "$DEB_FILE")"
-          fi
-          NEW_DEB_PATH=$(dirname "$DEB_FILE")/$NEW_DEB_NAME
-          mv "$DEB_FILE" "$NEW_DEB_PATH"
-          RENAMED_FILES="$RENAMED_FILES $NEW_DEB_PATH"
-          echo "Renamed DEB: $NEW_DEB_NAME"
-        done
-        
         echo "Final files: $RENAMED_FILES"
         echo "files=$RENAMED_FILES" >> $GITHUB_OUTPUT
 
@@ -204,7 +185,7 @@ jobs:
         
         gh release create "$TAG" \
           --title "Placcon Launcher $VERSION" \
-          --notes "Placcon Launcher $VERSION - Automated release with macOS ARM64, Windows Setup, and Linux DEB packages" \
+          --notes "Placcon Launcher $VERSION - Automated release with macOS ARM64, Windows Setup" \
           --draft=false \
           --prerelease=false \
           ${{ steps.renamed_files.outputs.files }}
