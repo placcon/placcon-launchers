@@ -1,12 +1,17 @@
 const { app, BrowserWindow, session, ipcMain } = require('electron');
 const path = require('path');
 const { SerialPort } = require('serialport');
+const noble = require('@abandonware/noble');
 
 // Keep a global reference of the window object
 let mainWindow;
 
 // Serial port state
 let serialPortInstance = null;
+
+// Bluetooth device state
+let bluetoothDevices = [];
+let isScanning = false;
 
 function createWindow() {
   // Create the browser window
@@ -18,7 +23,9 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      webSecurity: false, // Allow Web Bluetooth API
+      experimentalFeatures: true // Enable experimental features
     },
     icon: path.join(__dirname, 'assets', 'icon.png'),
     title: 'Placcon Launcher',
@@ -89,6 +96,23 @@ function configureSession() {
     // Add any custom headers if needed
     callback({ requestHeaders: details.requestHeaders });
   });
+
+  // Enable Web Bluetooth API
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    if (permission === 'bluetooth') {
+      callback(true); // Allow Bluetooth
+    } else {
+      callback(false);
+    }
+  });
+
+  // Set Bluetooth permissions
+  session.defaultSession.setPermissionCheckHandler((webContents, permission) => {
+    if (permission === 'bluetooth') {
+      return true;
+    }
+    return false;
+  });
 }
 
 // List available serial ports
@@ -145,8 +169,119 @@ ipcMain.handle('serialport-close', async () => {
   }
 });
 
+// List available Bluetooth devices
+ipcMain.handle('bluetooth-scan', async () => {
+  try {
+    console.log('Bluetooth scan requested, current state:', noble.state);
+    
+    if (isScanning) {
+      console.log('Already scanning, returning current devices');
+      return { success: true, devices: bluetoothDevices };
+    }
+
+    // Check if Bluetooth is powered on
+    if (noble.state !== 'poweredOn') {
+      console.log('Bluetooth not ready, state:', noble.state);
+      return { success: false, error: `Bluetooth is not ready. Current state: ${noble.state}. Please enable Bluetooth and try again.` };
+    }
+
+    bluetoothDevices = [];
+    isScanning = true;
+    console.log('Starting Bluetooth scan...');
+
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        console.log('Bluetooth scan timeout, stopping scan');
+        noble.stopScanning();
+        isScanning = false;
+        resolve({ success: true, devices: bluetoothDevices });
+      }, 10000); // 10 second timeout
+
+      const onDiscover = (peripheral) => {
+        console.log('Bluetooth device discovered:', peripheral.advertisement.localName || peripheral.advertisement.name);
+        const device = {
+          id: peripheral.id,
+          address: peripheral.address,
+          addressType: peripheral.addressType,
+          connectable: peripheral.connectable,
+          advertisement: peripheral.advertisement,
+          rssi: peripheral.rssi,
+          name: peripheral.advertisement.localName || peripheral.advertisement.name || 'Unknown Device'
+        };
+        
+        // Check if device is already in list
+        const existingIndex = bluetoothDevices.findIndex(d => d.id === device.id);
+        if (existingIndex >= 0) {
+          bluetoothDevices[existingIndex] = device;
+        } else {
+          bluetoothDevices.push(device);
+        }
+      };
+
+      const onScanStop = () => {
+        console.log('Bluetooth scan stopped, found devices:', bluetoothDevices.length);
+        clearTimeout(timeout);
+        isScanning = false;
+        noble.removeListener('discover', onDiscover);
+        noble.removeListener('scanStop', onScanStop);
+        resolve({ success: true, devices: bluetoothDevices });
+      };
+
+      noble.on('discover', onDiscover);
+      noble.on('scanStop', onScanStop);
+
+      noble.startScanning([], true);
+    });
+  } catch (error) {
+    console.error('Bluetooth scan error:', error);
+    isScanning = false;
+    return { success: false, error: error.message };
+  }
+});
+
+// Stop Bluetooth scanning
+ipcMain.handle('bluetooth-stop-scan', async () => {
+  try {
+    if (isScanning) {
+      noble.stopScanning();
+      isScanning = false;
+    }
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
+// Get current Bluetooth devices
+ipcMain.handle('bluetooth-get-devices', async () => {
+  try {
+    return { success: true, devices: bluetoothDevices };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 // App event handlers
 app.whenReady().then(() => {
+  // Initialize noble (Bluetooth)
+  console.log('Initializing Bluetooth...');
+  console.log('Initial Bluetooth state:', noble.state);
+  
+  noble.on('stateChange', (state) => {
+    console.log('Bluetooth state changed:', state);
+    if (state === 'poweredOn') {
+      console.log('Bluetooth is ready for scanning');
+    } else if (state === 'poweredOff') {
+      console.log('Bluetooth is powered off - please enable Bluetooth');
+    } else if (state === 'unauthorized') {
+      console.log('Bluetooth access is unauthorized - please grant permissions');
+    } else if (state === 'unsupported') {
+      console.log('Bluetooth is not supported on this device');
+    } else {
+      console.log('Bluetooth is not ready:', state);
+    }
+  });
+
   // Add this diagnostic check
   SerialPort.list().then(ports => {
     console.log('--- Serial Port Diagnostics (main process) ---');
