@@ -1,6 +1,6 @@
 {
   "name": "placcon-launcher",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "description": "Placcon Restaurant System Desktop Launcher",
   "main": "main.js",
   "scripts": {
